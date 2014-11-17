@@ -2,7 +2,7 @@
 <resources>
 
     <string name="app_name">Wear3PV</string>
-    <string name="hello_round">Hello Round World!</string>
-    <string name="hello_square">Hello Square World!</string>
+    <string name="connect">Connect</string>
+    <string name="mission_control_follow">Follow</string>
 
 </resources>

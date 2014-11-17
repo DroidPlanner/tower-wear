@@ -25,5 +25,5 @@ dependencies {
     compile 'com.google.android.support:wearable:1.0.0'
     compile 'com.google.android.gms:play-services-wearable:6.1.71'
 
-    compile project(':libraries:3DR-Services-Library:lib')
+    compile project(':3DRServicesClient:lib')
 }

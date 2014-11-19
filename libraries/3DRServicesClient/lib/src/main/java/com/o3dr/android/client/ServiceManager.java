@@ -6,13 +6,10 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.util.Log;
 
+import com.o3dr.android.client.interfaces.ServiceListener;
 import com.o3dr.android.client.utils.InstallServiceDialog;
 import com.o3dr.services.android.lib.model.IDroidPlannerServices;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Created by fhuya on 11/12/14.
@@ -33,14 +30,12 @@ public class ServiceManager {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            disconnect();
+            notifyServiceInterrupted();
         }
     };
 
-    private final Set<ServiceListener> serviceListeners = new HashSet<ServiceListener>();
-
     private final Context context;
-
+    private ServiceListener serviceListener;
     private IDroidPlannerServices o3drServices;
 
     public ServiceManager(Context context){
@@ -49,46 +44,6 @@ public class ServiceManager {
 
     IDroidPlannerServices get3drServices() {
         return o3drServices;
-    }
-
-    private void checkIfConnected(boolean connectIfDisconnected){
-        if(!isServiceConnected()){
-            disconnect();
-
-            if(connectIfDisconnected)
-                connect();
-        }
-    }
-
-    void addServiceListener(ServiceListener listener){
-        if(listener == null) return;
-
-        if(isServiceConnected()) {
-            listener.onServiceConnected();
-        }
-        else {
-            if(is3DRServicesInstalled())
-                connect();
-            else
-                promptFor3DRServicesInstall();
-        }
-
-        serviceListeners.add(listener);
-    }
-
-    void removeServiceListener(ServiceListener listener){
-        if(listener == null) return;
-
-        serviceListeners.remove(listener);
-        listener.onServiceDisconnected();
-
-        if(isServiceConnected() && serviceListeners.isEmpty())
-            disconnect();
-    }
-
-    void handleRemoteException(RemoteException e) {
-        Log.e(TAG, e.getMessage(), e);
-        checkIfConnected(false);
     }
 
     public boolean isServiceConnected() {
@@ -100,41 +55,39 @@ public class ServiceManager {
     }
 
     public void notifyServiceConnected(){
-        if(serviceListeners.isEmpty() || !isServiceConnected())
+        if(serviceListener == null)
             return;
 
-        for(ServiceListener listener: serviceListeners){
-            listener.onServiceConnected();
-        }
+        serviceListener.onServiceConnected();
     }
 
-    public void notifyServiceDisconnected(){
-        if(serviceListeners.isEmpty() || isServiceConnected())
+    public void notifyServiceInterrupted(){
+        if(serviceListener == null)
             return;
 
-        for(ServiceListener listener: serviceListeners){
-            listener.onServiceDisconnected();
-        }
+        serviceListener.onServiceInterrupted();
     }
 
     public void connect(ServiceListener listener) {
-        addServiceListener(listener);
-    }
+        if(serviceListener != null && isServiceConnected())
+            throw new IllegalStateException("Service is already connected.");
 
-    public void disconnect(ServiceListener listener){
-        removeServiceListener(listener);
-    }
-
-    protected void connect(){
-        if(is3DRServicesInstalled()) {
-            context.bindService(serviceIntent, o3drServicesConnection, Context.BIND_AUTO_CREATE);
+        if(listener == null) {
+            throw new IllegalArgumentException("ServiceListener argument cannot be null.");
         }
+
+        serviceListener = listener;
+
+        if(is3DRServicesInstalled())
+            context.bindService(serviceIntent, o3drServicesConnection, Context.BIND_AUTO_CREATE);
+        else
+            promptFor3DRServicesInstall();
     }
 
-	protected void disconnect() {
-		o3drServices = null;
-		context.unbindService(o3drServicesConnection);
-		notifyServiceDisconnected();
+	public void disconnect() {
+        serviceListener = null;
+        o3drServices = null;
+        context.unbindService(o3drServicesConnection);
 	}
 
     private boolean is3DRServicesInstalled(){

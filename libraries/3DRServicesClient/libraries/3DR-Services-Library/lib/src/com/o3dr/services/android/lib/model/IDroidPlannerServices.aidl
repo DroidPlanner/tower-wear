@@ -14,11 +14,16 @@ interface IDroidPlannerServices {
     boolean ping();
 
     /**
-    * Retrieve an handle to the droidplanner api.
-    *
-    * @param tag used to retrieve an existing handle if it exists.
+    * Acquire an handle to the droidplanner api.
     * @return IDroidPlannerApi object used to interact with the drone.
     */
-    IDroidPlannerApi getDroidPlannerApi(String tag);
+    IDroidPlannerApi acquireDroidPlannerApi();
+
+    /**
+    * Release the handle to the droidplanner api.
+    *
+    * @param callback callback used to receive droidplanner api events.
+    */
+    void releaseDroidPlannerApi(IDroidPlannerApi droidplannerApi);
 
 }

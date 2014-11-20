@@ -1,5 +1,6 @@
 package com.ox3dr.android.wear3pv.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.support.wearable.view.CircledImageView;
@@ -7,13 +8,38 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.o3dr.android.client.Drone;
 import com.ox3dr.android.wear3pv.R;
+import com.ox3dr.android.wear3pv.activity.FollowMeControls;
 
 /**
  * Created by fhuya on 11/17/14.
  */
 public abstract class BaseActionFragment extends Fragment implements View.OnClickListener {
+
+    private FollowMeControls parent;
+
+    @Override
+    public void onAttach(Activity activity){
+        super.onAttach(activity);
+
+        if(!(activity instanceof FollowMeControls)){
+            throw new IllegalStateException("Parent must be an instance of " + FollowMeControls
+                    .class.getName());
+        }
+
+        parent = (FollowMeControls) activity;
+    }
+
+    protected Drone getDrone(){
+        return parent.getDrone();
+    }
+
+    protected void showUser(String message){
+        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

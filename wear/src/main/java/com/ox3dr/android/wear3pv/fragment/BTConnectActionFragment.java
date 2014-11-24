@@ -15,7 +15,7 @@ import com.ox3dr.android.wear3pv.R;
  */
 public class BTConnectActionFragment extends BaseActionFragment {
 
-    private static final String BLUETOOTH_ADDRESS = "30:14:09:02:22:45";
+    private static final String BLUETOOTH_ADDRESS = "00:06:66:4E:16:B7";
 
     @Override
     protected int getActionImageResource() {

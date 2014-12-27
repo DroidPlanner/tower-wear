@@ -1,14 +1,3 @@
 include ':mobile', ':wear'
 
-//3DR Services library
-include ':3DRServicesClient:lib'
-project(':3DRServicesClient:lib').projectDir = new File('libraries/3DRServicesClient/lib')
-
-include ':3DR-Services-Library:lib'
-project(':3DR-Services-Library:lib').projectDir = new File
-        ('libraries/3DRServicesClient/libraries/3DR-Services-Library/lib')
-
-include ':Mavlink'
-project(':Mavlink').projectDir = new File('libraries/3DRServicesClient/libraries/Mavlink')
-
 

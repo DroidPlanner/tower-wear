@@ -1,3 +1,38 @@
 <resources>
-    <string name="app_name">Wear3PV</string>
+    <string name="app_name">DP-Wear</string>
+
+    <!-- App Settings/Preferences -->
+    <string name="pref_connection_type">Telemetry Connection Type</string>
+    <string name="pref_connection_type_summary">Which link to use to connect to the drone</string>
+    <string name="pref_mavlink_rates">Stream Rates</string>
+    <string name="pref_mavlink_rates_summary">Rate at which flight data should be received from the drone (in Hz)</string>
+    <string name="pref_mavlink_stream_rate_ext_stat">Waypoints, GPS raw, fence data, current waypoint, etc</string>
+    <string name="pref_mavlink_stream_rate_extra1">Attitude</string>
+    <string name="pref_mavlink_stream_rate_extra2">VFR_Hud data</string>
+    <string name="pref_mavlink_stream_rate_extra3">AHRS, Hardware Status, Wind</string>
+    <string name="pref_mavlink_stream_rate_position">Position data</string>
+    <string name="pref_mavlink_stream_rate_RC_override">RC Override</string>
+    <string name="pref_mavlink_stream_rate_rc_channels">RC Channel Data</string>
+    <string name="pref_mavlink_stream_rate_raw_sensors">Raw Sensors</string>
+    <string name="pref_mavlink_stream_rate_raw_controller">Raw Controller</string>
+    <string name="pref_connection">Connection Preferences</string>
+    <string name="pref_usb">USB Connection</string>
+    <string name="pref_baud_type">Telemetry link speed</string>
+    <string name="pref_baud_type_summary">Baud Rate of the USB Telemetry Link</string>
+    <string name="pref_server">TCP connection</string>
+    <string name="pref_server_ip">Server IP</string>
+    <string name="pref_server_port">Server Port</string>
+    <string name="pref_server_udp">UDP connection</string>
+    <string name="pref_udp_server_port">UDP Server Port</string>
+    <string name="about">About</string>
+    <string name="version">Version</string>
+    <string name="usage_statistics">Usage Statistics</string>
+    <string name="pref_usage_statistics_title">Send usage statistics</string>
+    <string name="pref_usage_statistics_summary">Help improve DroidPlanner by sending usage statistics.</string>
+    <string name="pref_bluetooth">BLUETOOTH CONNECTION</string>
+    <string name="pref_bluetooth_device_address">Bluetooth device</string>
+    <string name="pref_forget_bluetooth_device_address">Forget default device</string>
+    <string name="pref_forget_bluetooth_device_address_confirm">Are you sure?</string>
+    <string name="pref_bluetooth_forget">Forget</string>
+
 </resources>

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.services.DroneService;
 
 /**
@@ -13,15 +14,15 @@ import com.o3dr.android.dp.wear.services.DroneService;
 public class PreferencesActivity extends ActionBarActivity {
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
-        startService(new Intent(getApplicationContext(), DroneService.class));
+        startService(new Intent(getApplicationContext(), DroneService.class)
+                .setAction(WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION));
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         stopService(new Intent(getApplicationContext(), DroneService.class));
     }

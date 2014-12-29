@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.services.WearReceiverService;
 
 /**
@@ -18,6 +19,6 @@ public class HomeActivity extends Activity {
         setContentView(R.layout.activity_home);
 
         startService(new Intent(getApplicationContext(), WearReceiverService.class)
-                .setAction(WearReceiverService.ACTION_SHOW_CONTEXT_STREAM));
+                .setAction(WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION));
     }
 }

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    tools:deviceIds="wear"
+    tools:context=".activities.ContextStreamActivity">
+
+    <TextView
+        android:id="@+id/bar_battery"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="wrap_content"
+        tools:text="100%"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_content"
+        android:drawableStart="@drawable/ic_battery_charging_full_black_18dp"
+        android:textSize="@dimen/info_bar_text_size"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        />
+
+    <TextView
+        android:id="@+id/bar_signal"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="wrap_content"
+        tools:text="100%"
+        android:layout_height="wrap_content"
+        android:text="@string/empty_content"
+        android:drawableStart="@drawable/ic_network_wifi_black_18dp"
+        android:textSize="@dimen/info_bar_text_size"
+        android:layout_toStartOf="@+id/bar_battery"
+        />
+
+    <ImageView
+        android:id="@+id/bar_gps"
+        style="?android:attr/buttonBarButtonStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_gps_off_black_18dp"
+        android:layout_toStartOf="@+id/bar_signal"
+        android:layout_alignParentStart="true"
+        android:scaleType="center"
+        android:contentDescription="@string/bar_gps_content_description"
+        />
+
+    <TextView
+        android:id="@+id/connection_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"
+        tools:text="DP Wear: Disconnected"
+        android:layout_below="@+id/bar_battery"
+        android:textColor="@android:color/black"
+        />
+
+</RelativeLayout>

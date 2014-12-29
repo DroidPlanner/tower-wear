@@ -2,6 +2,7 @@ package com.o3dr.android.dp.wear.lib.services;
 
 import android.util.Log;
 
+import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.MessageEvent;
 import com.google.android.gms.wearable.WearableListenerService;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;

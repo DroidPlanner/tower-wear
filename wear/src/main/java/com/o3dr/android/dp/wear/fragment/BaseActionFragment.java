@@ -11,29 +11,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.o3dr.android.client.Drone;
-import com.ox3dr.android.wear3pv.R;
+import com.o3dr.android.dp.wear.R;
 
 /**
  * Created by fhuya on 11/17/14.
  */
 public abstract class BaseActionFragment extends Fragment implements View.OnClickListener {
 
-    private FollowMeControls parent;
-
-    @Override
-    public void onAttach(Activity activity){
-        super.onAttach(activity);
-
-        if(!(activity instanceof FollowMeControls)){
-            throw new IllegalStateException("Parent must be an instance of " + FollowMeControls
-                    .class.getName());
-        }
-
-        parent = (FollowMeControls) activity;
-    }
 
     protected Drone getDrone(){
-        return parent.getDrone();
+        return null;
     }
 
     protected void showUser(String message){

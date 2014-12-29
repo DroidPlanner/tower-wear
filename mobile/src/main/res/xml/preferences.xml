@@ -122,6 +122,17 @@
         </PreferenceScreen>
     </PreferenceCategory>
 
+    <!-- Wear Notification preferences -->
+    <PreferenceCategory android:title="Wear Context Stream Notification">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="@string/pref_enable_context_stream_notification_key"
+            android:summary="Used to enable context stream notification on the wear device"
+            android:title="Enable context stream notification"/>
+        <CheckBoxPreference
+            />
+    </PreferenceCategory>
+
     <!-- Analytics related preferences. -->
     <PreferenceCategory android:title="@string/usage_statistics" >
         <CheckBoxPreference

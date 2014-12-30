@@ -99,4 +99,47 @@ public class AppPreferences {
         rates.setRawController(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_raw_controller", "2")));
         return rates;
     }
+
+    public boolean getLiveUploadEnabled() {
+        // FIXME: Disabling live upload as it often causes the app to freeze on
+        // disconnect.
+        // return
+        // prefs.getBoolean(context.getString(R.string.pref_live_upload_enabled_key),
+        // false);
+        return false;
+    }
+
+    public String getDroneshareLogin() {
+        return prefs.getString(context.getString(R.string.pref_dshare_username_key), "").trim();
+    }
+
+    public void setDroneshareLogin(String b) {
+        prefs.edit().putString(context.getString(R.string.pref_dshare_username_key), b.trim())
+                .apply();
+    }
+
+    public String getDroneshareEmail() {
+        return prefs.getString("dshare_email", "").trim();
+    }
+
+    public void setDroneshareEmail(String b) {
+        prefs.edit().putString("dshare_email", b.trim()).apply();
+    }
+
+    public String getDronesharePassword() {
+        return prefs.getString(context.getString(R.string.pref_dshare_password_key), "").trim();
+    }
+
+    public void setDronesharePassword(String b) {
+        prefs.edit().putString(context.getString(R.string.pref_dshare_password_key), b.trim())
+                .apply();
+    }
+
+    public boolean getDroneshareEnabled() {
+        return prefs.getBoolean(context.getString(R.string.pref_dshare_enabled_key), true);
+    }
+
+    public void setDroneshareEnabled(boolean b) {
+        prefs.edit().putBoolean(context.getString(R.string.pref_dshare_enabled_key), b).apply();
+    }
 }

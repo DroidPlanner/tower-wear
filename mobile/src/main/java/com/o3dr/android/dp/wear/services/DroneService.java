@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.wearable.Node;
@@ -14,6 +15,7 @@ import com.o3dr.android.client.Drone;
 import com.o3dr.android.client.ServiceManager;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.ServiceListener;
+import com.o3dr.android.dp.wear.activities.BluetoothDevicesActivity;
 import com.o3dr.android.dp.wear.activities.PreferencesActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
@@ -23,8 +25,12 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
 import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
+import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
+import com.o3dr.services.android.lib.drone.connection.StreamRates;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
+
+import java.util.LinkedList;
 
 /**
  * Created by fhuya on 12/27/14.
@@ -49,6 +55,8 @@ public class DroneService extends Service implements ServiceListener, DroneListe
             handler.postDelayed(this, WATCHDOG_TIMEOUT);
         }
     };
+
+    private final LinkedList<Runnable> droneActionsQueue = new LinkedList<>();
 
     private AppPreferences appPrefs;
     private ServiceManager serviceManager;
@@ -95,18 +103,29 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                 switch(action){
                     case WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION:
                         final State vehicleState = drone.getAttribute(AttributeType.STATE);
-                        byte[] stateData = ParcelableUtils.marshall(vehicleState);
+                        byte[] stateData = vehicleState == null ? null : ParcelableUtils.marshall(vehicleState);
                         sendMessage(action, stateData);
                         break;
 
                     case WearUtils.ACTION_CONNECT:
                         final ConnectionParameter connParams = retrieveConnectionParameters();
-                        if(connParams != null)
-                            drone.connect(connParams);
+                        if(connParams != null) {
+                            executeDroneAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drone.connect(connParams);
+                                }
+                            });
+                        }
                         break;
 
                     case WearUtils.ACTION_DISCONNECT:
-                        drone.disconnect();
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                drone.disconnect();
+                            }
+                        });
                         break;
                 }
             }
@@ -119,22 +138,63 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         return START_REDELIVER_INTENT;
     }
 
+    private void executeDroneAction(final Runnable action){
+        if(drone.isStarted())
+            action.run();
+        else{
+            droneActionsQueue.offer(action);
+        }
+    }
+
     private ConnectionParameter retrieveConnectionParameters(){
         final int connectionType = appPrefs.getConnectionParameterType();
-        switch(connectionType){
-            case ConnectionType.TYPE_UDP:
-                return null;
+        final StreamRates rates = appPrefs.getStreamRates();
+        Bundle extraParams = new Bundle();
+        final DroneSharePrefs droneSharePrefs = new DroneSharePrefs(appPrefs.getDroneshareLogin(),
+                appPrefs.getDronesharePassword(), appPrefs.getDroneshareEnabled(), appPrefs.getLiveUploadEnabled());
 
+        ConnectionParameter connParams;
+        switch (connectionType) {
             case ConnectionType.TYPE_USB:
-                return null;
+                extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, appPrefs.getUsbBaudRate());
+                connParams = new ConnectionParameter(connectionType, extraParams, rates,
+                        droneSharePrefs);
+                break;
+
+            case ConnectionType.TYPE_UDP:
+                extraParams.putInt(ConnectionType.EXTRA_UDP_SERVER_PORT, appPrefs.getUdpServerPort());
+                connParams = new ConnectionParameter(connectionType, extraParams, rates,
+                        droneSharePrefs);
+                break;
 
             case ConnectionType.TYPE_TCP:
-                return null;
+                extraParams.putString(ConnectionType.EXTRA_TCP_SERVER_IP, appPrefs.getTcpServerIp());
+                extraParams.putInt(ConnectionType.EXTRA_TCP_SERVER_PORT, appPrefs.getTcpServerPort());
+                connParams = new ConnectionParameter(connectionType, extraParams, rates,
+                        droneSharePrefs);
+                break;
 
             case ConnectionType.TYPE_BLUETOOTH:
-                return null;
+                String btAddress = appPrefs.getBluetoothDeviceAddress();
+                if (TextUtils.isEmpty(btAddress)) {
+                    connParams = null;
+                    startActivity(new Intent(getApplicationContext(), BluetoothDevicesActivity.class)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+
+                } else {
+                    extraParams.putString(ConnectionType.EXTRA_BLUETOOTH_ADDRESS, btAddress);
+                    connParams = new ConnectionParameter(connectionType, extraParams, rates,
+                            droneSharePrefs);
+                }
+                break;
+
+            default:
+                Log.e(TAG, "Unrecognized connection type: " + connectionType);
+                connParams = null;
+                break;
         }
-        return null;
+
+        return connParams;
     }
 
     protected boolean sendMessage(String msgPath, byte[] msgData){
@@ -143,9 +203,17 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
     @Override
     public void onServiceConnected() {
+        Log.d(TAG, "3DR Services connected.");
         if(!drone.isStarted()) {
-            drone.start();
             drone.registerDroneListener(this);
+            drone.start();
+            Log.d(TAG, "Drone started.");
+
+            if(!droneActionsQueue.isEmpty()){
+                for(Runnable action: droneActionsQueue){
+                    action.run();
+                }
+            }
         }
     }
 

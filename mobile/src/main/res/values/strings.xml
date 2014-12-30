@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DP-Wear</string>
+    <string name="app_name" translatable="false">DP-Wear</string>
 
     <!-- App Settings/Preferences -->
     <string name="pref_connection_type">Telemetry Connection Type</string>
@@ -34,5 +34,23 @@
     <string name="pref_forget_bluetooth_device_address">Forget default device</string>
     <string name="pref_forget_bluetooth_device_address_confirm">Are you sure?</string>
     <string name="pref_bluetooth_forget">Forget</string>
+    <string name="user_account_category">User Account</string>
+    <string name="droneshare_username">Droneshare username</string>
+    <string name="droneshare_enabled">Droneshare enabled</string>
+    <string name="do_you_want_to_use_droneshare_">Do you want to use Droneshare?</string>
+    <string name="pref_dshare_username_title">Username</string>
+    <string name="pref_dshare_password_title">Password</string>
+    <string name="droneshare_password">Droneshare password</string>
+    <string name="enter_or_pick_a_password">Enter or pick a password</string>
+    <string name="if_that_user_does_not_exist_it_will_be_created">If that user does not exist, it will be created</string>
+
+    <!-- Bluetooth device selection strings -->
+    <string name="select_device">Select device to connect</string>
+    <string name="none_paired">No devices have been paired</string>
+    <string name="none_found">No devices found</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">Other Available Devices</string>
+    <string name="button_scan">Scan for devices</string>
+    <string name="scanning">Scanning for devices</string>
 
 </resources>

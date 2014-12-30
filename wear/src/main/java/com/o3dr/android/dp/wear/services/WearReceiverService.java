@@ -5,10 +5,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.BitmapFactory;
 import android.os.Parcelable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.wearable.activity.ConfirmationActivity;
 
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.o3dr.android.dp.wear.R;
@@ -30,8 +32,8 @@ import java.util.List;
 public class WearReceiverService extends WearRelayService {
 
     private static final int WEAR_NOTIFICATION_ID = 101;
-    private static final String EXTRA_CURRENT_FLIGHT_MODE = "extra_current_flight_mode";
-    private static final String EXTRA_VEHICLE_STATE = "extra_vehicle_state";
+    public static final String EXTRA_CURRENT_FLIGHT_MODE = "extra_current_flight_mode";
+    public static final String EXTRA_VEHICLE_STATE = "extra_vehicle_state";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
@@ -43,9 +45,17 @@ public class WearReceiverService extends WearRelayService {
                         updateContextStreamNotification(new State());
                         break;
 
+                    case WearUtils.ACTION_OPEN_PHONE_APP:
+                        startActivity(new Intent(getApplicationContext(), ConfirmationActivity.class)
+                                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                .putExtra(ConfirmationActivity.EXTRA_ANIMATION_TYPE,
+                                        ConfirmationActivity.OPEN_ON_PHONE_ANIMATION));
+                        /* FALL - THROUGH */
                     case WearUtils.ACTION_ARM:
+                    case WearUtils.ACTION_DISARM:
                     case WearUtils.ACTION_CONNECT:
                     case WearUtils.ACTION_DISCONNECT:
+                    case WearUtils.ACTION_TAKE_OFF:
                         sendMessage(action, null);
                         break;
                 }
@@ -89,11 +99,13 @@ public class WearReceiverService extends WearRelayService {
         final Resources res = getResources();
 
         //Head card display
-        final Intent displayIntent = new Intent(context, ContextStreamActivity.class);
+        final Intent displayIntent = new Intent(context, ContextStreamActivity.class)
+                .putExtra(EXTRA_VEHICLE_STATE, vehicleState);
         final PendingIntent displayPI = PendingIntent.getActivity(context, 0, displayIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         final NotificationCompat.WearableExtender extender = new NotificationCompat.WearableExtender()
+                .setBackground(BitmapFactory.decodeResource(res, R.drawable.wear_notification_bg))
                 .setDisplayIntent(displayPI)
                 .setCustomSizePreset(Notification.WearableExtender.SIZE_DEFAULT);
 
@@ -173,6 +185,14 @@ public class WearReceiverService extends WearRelayService {
         actionsList.add(openWearAppAction);
 
         //Open phone app card.
+        final Intent settingsIntent = new Intent(context, WearReceiverService.class)
+                .setAction(WearUtils.ACTION_OPEN_PHONE_APP);
+        final PendingIntent settingsPI = PendingIntent.getService(context, 0, settingsIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        final NotificationCompat.Action settingsAction = new NotificationCompat.Action(R.drawable.go_to_phone_00156,
+                getText(R.string.preferences), settingsPI);
+
+        actionsList.add(settingsAction);
 
         extender.addActions(actionsList);
 

@@ -12,5 +12,6 @@
     <string name="disarm">Disarm</string>
     <string name="flight_modes">Flight Modes</string>
     <string name="open_app">Open App</string>
+    <string name="preferences">Preferences</string>
 
 </resources>

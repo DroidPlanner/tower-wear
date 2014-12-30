@@ -47,6 +47,8 @@ public class WearUtils {
     public static final String ACTION_ARM = ACTION_PREFIX + "/arm";
     public static final String ACTION_TAKE_OFF = ACTION_PREFIX + "/take_off";
     public static final String ACTION_DISARM = ACTION_PREFIX + "/disarm";
+    public static final String ACTION_OPEN_PHONE_APP = ACTION_PREFIX + "/open_phone_app";
+    public static final String ACTION_OPEN_WEAR_APP = ACTION_PREFIX + "/open_wear_app";
 
     /**
      * Asynchronously send a message using the Wearable.MessageApi api to connected wear nodes.

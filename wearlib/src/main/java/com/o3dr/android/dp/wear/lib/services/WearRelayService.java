@@ -17,7 +17,7 @@ public class WearRelayService extends WearableListenerService {
 
     private final static String TAG = WearRelayService.class.getSimpleName();
 
-    private final Handler handler = new Handler();
+    protected final Handler handler = new Handler();
     protected GoogleApiClientManager apiClientMgr;
 
     @Override

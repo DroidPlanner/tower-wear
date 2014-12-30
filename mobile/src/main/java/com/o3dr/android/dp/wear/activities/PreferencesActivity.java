@@ -20,10 +20,4 @@ public class PreferencesActivity extends ActionBarActivity {
         startService(new Intent(getApplicationContext(), DroneService.class)
                 .setAction(WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION));
     }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        stopService(new Intent(getApplicationContext(), DroneService.class));
-    }
 }

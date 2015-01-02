@@ -4,7 +4,7 @@
     <string name="app_name">DP-Wear</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="mission_control_follow">Follow</string>
+    <string name="mission_control_follow">Follow Me</string>
     <string name="empty_content">--</string>
     <string name="bar_gps_content_description">Vehicle GPS status</string>
     <string name="arm">Arm</string>

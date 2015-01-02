@@ -18,7 +18,7 @@
         <activity android:name=".activities.FlightModesSelectionActivity" />
 
         <activity
-            android:name=".activities.HomeActivity"
+            android:name=".activities.FollowMeActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask">
             <intent-filter>

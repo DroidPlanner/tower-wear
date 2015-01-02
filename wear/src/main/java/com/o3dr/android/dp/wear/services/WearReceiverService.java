@@ -23,7 +23,7 @@ import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.ContextStreamActivity;
 import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
-import com.o3dr.android.dp.wear.activities.HomeActivity;
+import com.o3dr.android.dp.wear.activities.FollowMeActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -153,6 +153,18 @@ public class WearReceiverService extends WearRelayService {
         return flightModeAction;
     }
 
+    private NotificationCompat.Action getFollowMeAction(Context context, State vehicleState){
+        final Intent openWearAppIntent = new Intent(context, FollowMeActivity.class)
+                .setAction(AttributeType.STATE)
+                .putExtra(EXTRA_EVENT_DATA, vehicleState);
+        final PendingIntent openFollowMePI = PendingIntent.getActivity(context, 0, openWearAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        final NotificationCompat.Action openFollowMeAction = new NotificationCompat.Action(R.drawable.ic_follow,
+                getText(R.string.mission_control_follow), openFollowMePI);
+
+        return openFollowMeAction;
+    }
+
     private void updateContextStreamNotification(){
         final String dataPath = WearUtils.VEHICLE_DATA_PREFIX + AttributeType.STATE;
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
@@ -206,7 +218,7 @@ public class WearReceiverService extends WearRelayService {
 
             if (isCopter) {
                 if (vehicleState.isFlying()) {
-
+                    actionsList.add(getFollowMeAction(context, vehicleState));
                     actionsList.add(getFlightModesAction(context, vehicleMode));
                 } else if (vehicleState.isArmed()) {
                     final Intent takeOffIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
@@ -238,6 +250,7 @@ public class WearReceiverService extends WearRelayService {
                     actionsList.add(getDisconnectAction(context));
                 }
             } else {
+                actionsList.add(getFollowMeAction(context, vehicleState));
                 actionsList.add(getFlightModesAction(context, vehicleMode));
                 actionsList.add(getDisconnectAction(context));
             }
@@ -251,17 +264,6 @@ public class WearReceiverService extends WearRelayService {
 
             actionsList.add(connectAction);
         }
-
-        //Open Wear app card.
-        final Intent openWearAppIntent = new Intent(context, HomeActivity.class)
-                .setAction(AttributeType.STATE)
-                .putExtra(EXTRA_EVENT_DATA, eventData);
-        final PendingIntent openWearAppPI = PendingIntent.getActivity(context, 0, openWearAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action openWearAppAction = new NotificationCompat.Action(R.drawable
-                .ic_fullscreen_white_48dp, getText(R.string.open_app), openWearAppPI);
-
-        actionsList.add(openWearAppAction);
 
         //Open phone app card.
         final Intent settingsIntent = new Intent(context, WearReceiverService.class)

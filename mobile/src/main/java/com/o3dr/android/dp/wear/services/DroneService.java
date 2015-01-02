@@ -6,28 +6,27 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.client.Drone;
 import com.o3dr.android.client.ServiceManager;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.ServiceListener;
 import com.o3dr.android.dp.wear.activities.BluetoothDevicesActivity;
-import com.o3dr.android.dp.wear.activities.PreferencesActivity;
-import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.utils.AppPreferences;
+import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
 import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
 import com.o3dr.services.android.lib.drone.connection.StreamRates;
-import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
 import java.util.LinkedList;
@@ -40,6 +39,8 @@ public class DroneService extends Service implements ServiceListener, DroneListe
     private static final String TAG = DroneService.class.getSimpleName();
 
     private static final long WATCHDOG_TIMEOUT = 30 * 1000; //ms
+
+    static final String EXTRA_ACTION_DATA = "extra_action_data";
 
     private final Handler handler = new Handler();
 
@@ -85,6 +86,8 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         apiClientMgr.stop();
 
         //Clean out the service manager, and drone instances.
+        drone.destroy();
+        serviceManager.disconnect();
 
         handler.removeCallbacks(destroyWatchdog);
     }
@@ -102,9 +105,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                 switch(action){
                     case WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION:
-                        final State vehicleState = drone.getAttribute(AttributeType.STATE);
-                        byte[] stateData = vehicleState == null ? null : ParcelableUtils.marshall(vehicleState);
-                        sendMessage(action, stateData);
+                        sendMessage(action, null);
                         break;
 
                     case WearUtils.ACTION_CONNECT:
@@ -127,6 +128,45 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                             }
                         });
                         break;
+
+                    case WearUtils.ACTION_ARM:
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                drone.arm(true);
+                            }
+                        });
+                        break;
+
+                    case WearUtils.ACTION_DISARM:
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                drone.arm(false);
+                            }
+                        });
+                        break;
+
+                    case WearUtils.ACTION_TAKE_OFF:
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                drone.doGuidedTakeoff(5);
+                            }
+                        });
+                        break;
+
+                    case WearUtils.ACTION_CHANGE_VEHICLE_MODE:
+                        final VehicleMode vehicleMode = intent.getParcelableExtra(EXTRA_ACTION_DATA);
+                        if(vehicleMode != null){
+                            executeDroneAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drone.changeVehicleMode(vehicleMode);
+                                }
+                            });
+                        }
+                        break;
                 }
             }
         }
@@ -136,6 +176,11 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         handler.postDelayed(destroyWatchdog, WATCHDOG_TIMEOUT);
 
         return START_REDELIVER_INTENT;
+    }
+
+    private byte[] getDroneAttribute(String attributeType){
+        final Parcelable attribute = drone.getAttribute(attributeType);
+        return attribute == null ? null : ParcelableUtils.marshall(attribute);
     }
 
     private void executeDroneAction(final Runnable action){
@@ -229,7 +274,38 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
     @Override
     public void onDroneEvent(String event, Bundle bundle) {
-        sendMessage(WearUtils.EVENT_PREFIX + event, null);
+        String attributeType = null;
+        switch(event){
+            case AttributeEvent.STATE_CONNECTED:
+            case AttributeEvent.STATE_DISCONNECTED:
+            case AttributeEvent.STATE_UPDATED:
+            case AttributeEvent.STATE_VEHICLE_MODE:
+            case AttributeEvent.STATE_ARMING:
+                //Retrieve the state attribute
+                attributeType = AttributeType.STATE;
+                break;
+
+            case AttributeEvent.BATTERY_UPDATED:
+                //Retrieve the battery attribute
+                attributeType = AttributeType.BATTERY;
+                break;
+
+            case AttributeEvent.SIGNAL_UPDATED:
+                //Retrieve the signal attribute
+                attributeType = AttributeType.SIGNAL;
+                break;
+
+            case AttributeEvent.GPS_FIX:
+            case AttributeEvent.GPS_COUNT:
+                attributeType = AttributeType.GPS;
+                break;
+        }
+
+        if(attributeType != null) {
+            byte[] eventData = getDroneAttribute(attributeType);
+            String dataPath = WearUtils.VEHICLE_DATA_PREFIX + attributeType;
+            WearUtils.asyncPutDataItem(apiClientMgr, dataPath, eventData);
+        }
     }
 
     @Override

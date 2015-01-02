@@ -15,6 +15,7 @@
             android:value="@integer/google_play_services_version" />
 
         <activity android:name="android.support.wearable.activity.ConfirmationActivity" />
+        <activity android:name=".activities.FlightModesSelectionActivity" />
 
         <activity
             android:name=".activities.HomeActivity"

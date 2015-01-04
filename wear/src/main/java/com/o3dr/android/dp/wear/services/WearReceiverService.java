@@ -26,11 +26,13 @@ import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
 import com.o3dr.android.dp.wear.activities.FollowMeActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
+import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
+import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
 import java.util.ArrayList;
@@ -67,6 +69,8 @@ public class WearReceiverService extends WearRelayService {
                     case WearUtils.ACTION_CONNECT:
                     case WearUtils.ACTION_DISCONNECT:
                     case WearUtils.ACTION_TAKE_OFF:
+                    case WearUtils.ACTION_START_FOLLOW_ME:
+                    case WearUtils.ACTION_STOP_FOLLOW_ME:
                         sendMessage(action, null);
                         break;
 
@@ -76,6 +80,18 @@ public class WearReceiverService extends WearRelayService {
                         sendMessage(action, actionData);
                         break;
 
+                    case WearUtils.ACTION_CHANGE_FOLLOW_ME_TYPE:
+                        FollowType followType = intent.getParcelableExtra(EXTRA_ACTION_DATA);
+                        byte[] followData = followType == null ? null : ParcelableUtils.marshall(followType);
+                        sendMessage(action, followData);
+                        break;
+
+                    case WearUtils.ACTION_SET_FOLLOW_ME_RADIUS:
+                    case WearUtils.ACTION_SET_GUIDED_ALTITUDE:
+                        final int radius = intent.getIntExtra(EXTRA_ACTION_DATA, FollowMeRadiusAdapter.MIN_RADIUS);
+                        byte[] radiusData = {(byte) radius};
+                        sendMessage(action, radiusData);
+                        break;
                 }
             }
         }
@@ -211,7 +227,7 @@ public class WearReceiverService extends WearRelayService {
         final boolean isConnected = vehicleState != null && vehicleState.isConnected();
         int notificationPriority = NotificationCompat.PRIORITY_DEFAULT;
         if (isConnected) {
-            notificationPriority = NotificationCompat.PRIORITY_HIGH;
+            notificationPriority = NotificationCompat.PRIORITY_MAX;
 
             VehicleMode vehicleMode = vehicleState.getVehicleMode();
             final boolean isCopter = vehicleMode == null || vehicleMode.getDroneType() == Type.TYPE_COPTER;
@@ -280,6 +296,8 @@ public class WearReceiverService extends WearRelayService {
         Notification contextStream = new NotificationCompat.Builder(context)
                 .setContentTitle(getText(R.string.app_name))
                 .setContentText("")
+                .setOnlyAlertOnce(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(notificationPriority)
                 .setOngoing(isConnected)
                 .extend(extender)

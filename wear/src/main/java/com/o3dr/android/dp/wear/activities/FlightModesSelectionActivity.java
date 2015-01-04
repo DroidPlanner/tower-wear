@@ -11,9 +11,7 @@ import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.services.WearReceiverService;
 import com.o3dr.android.dp.wear.widgets.adapters.VehicleModeAdapter;
-import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
-import com.o3dr.services.android.lib.util.ParcelableUtils;
 
 import java.util.List;
 
@@ -25,7 +23,7 @@ public class FlightModesSelectionActivity extends Activity implements WearableLi
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_flight_modes_selector);
+        setContentView(R.layout.wear_list_view);
 
         handleIntent(getIntent());
     }
@@ -42,7 +40,7 @@ public class FlightModesSelectionActivity extends Activity implements WearableLi
             flightMode = VehicleMode.UNKNOWN;
 
         List<VehicleMode> vehicleModes = VehicleMode.getVehicleModePerDroneType(flightMode.getDroneType());
-        WearableListView listView = (WearableListView) findViewById(R.id.flight_modes_list);
+        WearableListView listView = (WearableListView) findViewById(R.id.wear_list);
         listView.setAdapter(new VehicleModeAdapter(vehicleModes));
         listView.setClickListener(this);
 

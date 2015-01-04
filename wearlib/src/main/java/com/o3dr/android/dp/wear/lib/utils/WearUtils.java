@@ -50,6 +50,12 @@ public class WearUtils {
     public static final String ACTION_OPEN_PHONE_APP = ACTION_PREFIX + "/open_phone_app";
     public static final String ACTION_OPEN_WEAR_APP = ACTION_PREFIX + "/open_wear_app";
     public static final String ACTION_CHANGE_VEHICLE_MODE = ACTION_PREFIX + "/change_vehicle_mode";
+    public static final String ACTION_START_FOLLOW_ME = ACTION_PREFIX + "/start_follow_me";
+    public static final String ACTION_CHANGE_FOLLOW_ME_TYPE = ACTION_PREFIX + "/change_follow_me_type";
+    public static final String ACTION_STOP_FOLLOW_ME = ACTION_PREFIX + "/stop_follow_me";
+    public static final String ACTION_SET_GUIDED_ALTITUDE = ACTION_PREFIX + "/set_guided_altitude";
+    public static final String ACTION_SET_FOLLOW_ME_RADIUS = ACTION_PREFIX + "/set_follow_me_radius";
+
 
     /**
      * Asynchronously send a message using the Wearable.MessageApi api to connected wear nodes.

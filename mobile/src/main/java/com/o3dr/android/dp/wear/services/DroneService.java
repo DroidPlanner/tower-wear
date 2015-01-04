@@ -27,6 +27,7 @@ import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
 import com.o3dr.services.android.lib.drone.connection.StreamRates;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
+import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
 import java.util.LinkedList;
@@ -167,6 +168,61 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                             });
                         }
                         break;
+
+                    case WearUtils.ACTION_START_FOLLOW_ME:
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                //TODO: update the follow me type
+                                drone.enableFollowMe(null);
+                            }
+                        });
+                        break;
+
+                    case WearUtils.ACTION_STOP_FOLLOW_ME:
+                        executeDroneAction(new Runnable() {
+                            @Override
+                            public void run() {
+                                drone.disableFollowMe();
+                            }
+                        });
+                        break;
+
+                    case WearUtils.ACTION_CHANGE_FOLLOW_ME_TYPE:
+                        final FollowType followType = intent.getParcelableExtra(EXTRA_ACTION_DATA);
+                        if(followType != null) {
+                            executeDroneAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drone.enableFollowMe(followType);
+                                }
+                            });
+                        }
+                        break;
+
+                    case WearUtils.ACTION_SET_GUIDED_ALTITUDE:
+                        final int altitude = intent.getIntExtra(EXTRA_ACTION_DATA, -1);
+                        if(altitude != -1){
+                            executeDroneAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drone.setGuidedAltitude(altitude);
+                                }
+                            });
+                        }
+                        break;
+
+                    case WearUtils.ACTION_SET_FOLLOW_ME_RADIUS:
+                        final int radius = intent.getIntExtra(EXTRA_ACTION_DATA, -1);
+                        if(radius != -1){
+                            executeDroneAction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    drone.setFollowMeRadius(radius);
+                                }
+                            });
+                        }
+                        break;
                 }
             }
         }
@@ -298,6 +354,16 @@ public class DroneService extends Service implements ServiceListener, DroneListe
             case AttributeEvent.GPS_FIX:
             case AttributeEvent.GPS_COUNT:
                 attributeType = AttributeType.GPS;
+                break;
+
+            case AttributeEvent.GUIDED_POINT_UPDATED:
+                attributeType = AttributeType.GUIDED_STATE;
+                break;
+
+            case AttributeEvent.FOLLOW_START:
+            case AttributeEvent.FOLLOW_STOP:
+            case AttributeEvent.FOLLOW_UPDATE:
+                attributeType = AttributeType.FOLLOW_STATE;
                 break;
         }
 

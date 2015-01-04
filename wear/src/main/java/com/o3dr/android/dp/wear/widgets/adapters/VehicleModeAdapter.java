@@ -1,6 +1,5 @@
 package com.o3dr.android.dp.wear.widgets.adapters;
 
-import android.support.v7.widget.RecyclerView;
 import android.support.wearable.view.WearableListView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -36,7 +35,7 @@ public class VehicleModeAdapter extends WearableListView.Adapter {
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
         return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout
-                .list_item_vehicle_mode, parent, false));
+                .wear_list_item_default, parent, false));
     }
 
     @Override

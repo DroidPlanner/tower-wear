@@ -1,35 +1,39 @@
 package com.o3dr.android.dp.wear.fragment;
 
-import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.wearable.view.CircledImageView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.o3dr.android.client.Drone;
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.activities.FollowMeActivity;
+import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.gcs.follow.FollowState;
 
 /**
- * Created by fhuya on 11/17/14.
+ * Template for the action views used in the app.
  */
 public abstract class BaseActionFragment extends Fragment implements View.OnClickListener {
 
+    private State vehicleState;
+    private FollowState vehicleFollowState;
 
-    protected Drone getDrone(){
-        return null;
-    }
-
-    protected void showUser(String message){
-        Toast.makeText(getActivity().getApplicationContext(), message, Toast.LENGTH_LONG).show();
+    @Override
+    public void onCreate(Bundle savedInstanceState){
+        super.onCreate(savedInstanceState);
+        Bundle arguments = getArguments();
+        if(arguments != null) {
+            vehicleState = arguments.getParcelable(FollowMeActivity.EXTRA_VEHICLE_STATE);
+            vehicleFollowState = arguments.getParcelable(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE);
+        }
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_action_layout, container, false);
     }
 
@@ -37,8 +41,7 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final CircledImageView faveImage = (CircledImageView) view.findViewById(R.id
-                .listing_action_image);
+        final CircledImageView faveImage = (CircledImageView) view.findViewById(R.id.listing_action_image);
         if (faveImage != null) {
             faveImage.setImageResource(getActionImageResource());
             faveImage.setOnClickListener(this);
@@ -46,13 +49,25 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
 
         final TextView faveLabel = (TextView) view.findViewById(R.id.listing_action_label);
         if (faveLabel != null) {
-            faveLabel.setText(getActionLabelResource());
+            faveLabel.setText(getActionLabel());
         }
+    }
+
+    protected Context getContext(){
+        return getActivity().getApplicationContext();
+    }
+
+    protected State getVehicleState(){
+        return vehicleState;
+    }
+
+    protected FollowState getVehicleFollowState(){
+        return vehicleFollowState;
     }
 
     protected abstract int getActionImageResource();
 
-    protected abstract int getActionLabelResource();
+    protected abstract CharSequence getActionLabel();
 
     protected abstract void onActionClicked();
 

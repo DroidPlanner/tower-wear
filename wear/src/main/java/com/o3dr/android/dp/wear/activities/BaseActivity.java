@@ -66,6 +66,8 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
             final DataItem dataItem = event.getDataItem();
             onDataItemReceived(dataItem, eventType);
         }
+
+        dataEvents.release();
     }
 
     protected abstract void onVehicleDataUpdated(String dataType, byte[] eventData);
@@ -88,6 +90,8 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
                                     if (dataItem != null)
                                         onDataItemReceived(dataItem, DataEvent.TYPE_CHANGED);
                                 }
+
+                                dataItemBuffer.release();
                             }
                         });
             }
@@ -100,7 +104,6 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
 
         if (dataPath.startsWith(WearUtils.VEHICLE_DATA_PREFIX)) {
             final String dataType = dataPath.replace(WearUtils.VEHICLE_DATA_PREFIX, "");
-            Log.d(TAG, "Received update for attribute " + dataType);
 
             final byte[] eventData;
             if(eventType == DataEvent.TYPE_DELETED)

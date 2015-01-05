@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.FollowMeActivity;
+import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 
@@ -21,6 +22,7 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
 
     private State vehicleState;
     private FollowState vehicleFollowState;
+    private GuidedState guidedState;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -29,6 +31,7 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
         if(arguments != null) {
             vehicleState = arguments.getParcelable(FollowMeActivity.EXTRA_VEHICLE_STATE);
             vehicleFollowState = arguments.getParcelable(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE);
+            guidedState = arguments.getParcelable(FollowMeActivity.EXTRA_GUIDED_STATE);
         }
     }
 
@@ -63,6 +66,10 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
 
     protected FollowState getVehicleFollowState(){
         return vehicleFollowState;
+    }
+
+    protected GuidedState getVehicleGuidedState(){
+        return guidedState;
     }
 
     protected abstract int getActionImageResource();

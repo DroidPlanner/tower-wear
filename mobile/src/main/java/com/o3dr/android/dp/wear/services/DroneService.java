@@ -27,6 +27,7 @@ import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
 import com.o3dr.services.android.lib.drone.connection.StreamRates;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
+import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
@@ -173,8 +174,14 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                         executeDroneAction(new Runnable() {
                             @Override
                             public void run() {
-                                //TODO: update the follow me type
-                                drone.enableFollowMe(null);
+                                FollowState followState = drone.getAttribute(AttributeType.FOLLOW_STATE);
+                                FollowType followType = null;
+                                if(followState != null)
+                                    followType = followState.getMode();
+
+                                if(followType == null)
+                                    followType = FollowType.LEASH;
+                                drone.enableFollowMe(followType);
                             }
                         });
                         break;
@@ -308,6 +315,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         if(!drone.isStarted()) {
             drone.registerDroneListener(this);
             drone.start();
+            updateAllVehicleAttributes();
             Log.d(TAG, "Drone started.");
 
             if(!droneActionsQueue.isEmpty()){
@@ -334,6 +342,10 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         switch(event){
             case AttributeEvent.STATE_CONNECTED:
             case AttributeEvent.STATE_DISCONNECTED:
+                //Update all of the vehicle's properties.
+                updateAllVehicleAttributes();
+                break;
+
             case AttributeEvent.STATE_UPDATED:
             case AttributeEvent.STATE_VEHICLE_MODE:
             case AttributeEvent.STATE_ARMING:
@@ -367,6 +379,22 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                 break;
         }
 
+        updateVehicleAttribute(attributeType);
+    }
+
+    private void updateAllVehicleAttributes(){
+        updateVehicleAttribute(AttributeType.ALTITUDE);
+        updateVehicleAttribute(AttributeType.ATTITUDE);
+        updateVehicleAttribute(AttributeType.BATTERY);
+        updateVehicleAttribute(AttributeType.FOLLOW_STATE);
+        updateVehicleAttribute(AttributeType.GUIDED_STATE);
+        updateVehicleAttribute(AttributeType.GPS);
+        updateVehicleAttribute(AttributeType.HOME);
+        updateVehicleAttribute(AttributeType.STATE);
+        updateVehicleAttribute(AttributeType.TYPE);
+    }
+
+    private void updateVehicleAttribute(String attributeType){
         if(attributeType != null) {
             byte[] eventData = getDroneAttribute(attributeType);
             String dataPath = WearUtils.VEHICLE_DATA_PREFIX + attributeType;

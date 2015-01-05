@@ -44,9 +44,9 @@ public class FollowMeActivity extends BaseActivity {
     @Override
     public void onStart(){
         super.onStart();
-        reloadVehicleData(AttributeType.STATE);
         reloadVehicleData(AttributeType.FOLLOW_STATE);
         reloadVehicleData(AttributeType.GUIDED_STATE);
+        reloadVehicleData(AttributeType.STATE);
     }
 
     @Override

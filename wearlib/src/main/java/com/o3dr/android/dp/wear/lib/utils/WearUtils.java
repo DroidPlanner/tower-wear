@@ -49,6 +49,7 @@ public class WearUtils {
     public static final String ACTION_DISARM = ACTION_PREFIX + "/disarm";
     public static final String ACTION_OPEN_PHONE_APP = ACTION_PREFIX + "/open_phone_app";
     public static final String ACTION_OPEN_WEAR_APP = ACTION_PREFIX + "/open_wear_app";
+    public static final String ACTION_REFRESH_VEHICLE_ATTRIBUTE = ACTION_PREFIX + "/refresh_vehicle_attribute";
     public static final String ACTION_CHANGE_VEHICLE_MODE = ACTION_PREFIX + "/change_vehicle_mode";
     public static final String ACTION_START_FOLLOW_ME = ACTION_PREFIX + "/start_follow_me";
     public static final String ACTION_CHANGE_FOLLOW_ME_TYPE = ACTION_PREFIX + "/change_follow_me_type";

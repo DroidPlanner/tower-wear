@@ -1,27 +1,18 @@
 package com.o3dr.android.dp.wear.fragment;
 
-import android.app.Activity;
-import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
-import android.support.wearable.view.WearableListView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.os.Parcelable;
 
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.FollowMeActivity;
-import com.o3dr.android.dp.wear.lib.utils.WearUtils;
-import com.o3dr.android.dp.wear.services.WearReceiverService;
-import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
-import com.o3dr.services.android.lib.drone.property.GuidedState;
-import com.o3dr.services.android.lib.gcs.follow.FollowState;
+import com.o3dr.android.dp.wear.activities.FollowMeRadiusSelector;
 
 /**
  * Created by fhuya on 1/4/15.
  */
-public class FollowMeRadiusFragment extends Fragment implements WearableListView.ClickListener {
+public class FollowMeRadiusFragment extends BaseActionFragment {
 
     public static final int VERTICAL_RADIUS_TYPE = 0;
     public static final int HORIZONTAL_RADIUS_TYPE = 1;
@@ -31,57 +22,42 @@ public class FollowMeRadiusFragment extends Fragment implements WearableListView
     private int radiusType;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.wear_list_view, container, false);
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        WearableListView radiusSelectorView = (WearableListView) view.findViewById(R.id.wear_list);
-        radiusSelectorView.setAdapter(new FollowMeRadiusAdapter());
-        radiusSelectorView.setClickListener(this);
-
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         final Bundle arguments = getArguments();
         radiusType = arguments.getInt(EXTRA_RADIUS_TYPE, VERTICAL_RADIUS_TYPE);
-        final int currentRadius;
-        switch (radiusType) {
-            case HORIZONTAL_RADIUS_TYPE:
-                FollowState followState = arguments.getParcelable(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE);
-                currentRadius = (int) followState.getRadius();
-                break;
+    }
 
-            case VERTICAL_RADIUS_TYPE:
-            default:
-                GuidedState guidedState = arguments.getParcelable(FollowMeActivity.EXTRA_GUIDED_STATE);
-                currentRadius = (int) guidedState.getCoordinate().getAltitude();
-                break;
-        }
+    @Override
+    protected int getActionImageResource() {
+        if (radiusType == HORIZONTAL_RADIUS_TYPE)
+            return R.drawable.ic_settings_ethernet_white_48dp;
+        else
+            return R.drawable.ic_format_line_spacing_white_48dp;
+    }
 
-        RecyclerView.LayoutManager layoutMgr = radiusSelectorView.getLayoutManager();
-        if(layoutMgr != null){
-            layoutMgr.scrollToPosition(currentRadius);
+    @Override
+    protected CharSequence getActionLabel() {
+        if (radiusType == HORIZONTAL_RADIUS_TYPE) {
+            return "Follow Me Radius";
+        } else {
+            return "Follow Me Altitude";
         }
     }
 
     @Override
-    public void onClick(WearableListView.ViewHolder viewHolder) {
-        final Activity activity = getActivity();
-        if (activity == null)
-            return;
+    protected void onActionClicked() {
+        final String dataKey = radiusType == HORIZONTAL_RADIUS_TYPE
+                ? FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE
+                : FollowMeActivity.EXTRA_GUIDED_STATE;
+        final Parcelable data = radiusType == HORIZONTAL_RADIUS_TYPE
+                ? getVehicleFollowState()
+                : getVehicleGuidedState();
 
-        final String action = radiusType == VERTICAL_RADIUS_TYPE
-                ? WearUtils.ACTION_SET_GUIDED_ALTITUDE
-                : WearUtils.ACTION_SET_FOLLOW_ME_RADIUS;
-        final Integer radius = (Integer) viewHolder.itemView.getTag();
-        activity.startService(new Intent(activity.getApplicationContext(), WearReceiverService.class)
-                .setAction(action)
-                .putExtra(WearReceiverService.EXTRA_ACTION_DATA, radius));
-    }
-
-    @Override
-    public void onTopEmptyRegionClick() {
-
+        final Context context = getContext();
+        context.startActivity(new Intent(context, FollowMeRadiusSelector.class)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .putExtra(EXTRA_RADIUS_TYPE, radiusType)
+                .putExtra(dataKey, data));
     }
 }

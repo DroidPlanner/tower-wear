@@ -66,14 +66,15 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
                     final boolean isCopter = vehicleMode == null || vehicleMode.getDroneType() == Type.TYPE_COPTER;
 
                     if(isCopter) {
-                        if (vehicleState.isArmed()) {
+                        if (vehicleState.isFlying()) {
+                            fragment = new FlightModesActionFragment();
+                        }
+                        else if (vehicleState.isArmed()) {
                             if (column == 0) {
                                 fragment = new TakeOffActionFragment();
                             } else {
                                 fragment = new DisarmActionFragment();
                             }
-                        } else if (vehicleState.isFlying()) {
-                            fragment = new FlightModesActionFragment();
                         } else {
                             if (column == 0) {
                                 fragment = new ArmActionFragment();
@@ -131,7 +132,7 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
     @Override
     public int getRowCount() {
         final boolean isFollowMeReady = vehicleState != null && vehicleState.isConnected() && vehicleState.isArmed() &&
-                vehicleState.isFlying();
+                vehicleState.isFlying() && vehicleFollowState != null && guidedState != null;
         return isFollowMeReady ? 2 : 1;
     }
 
@@ -147,10 +148,10 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
                     final boolean isCopter = vehicleMode == null || vehicleMode.getDroneType() == Type.TYPE_COPTER;
 
                     if(isCopter) {
-                        if (vehicleState.isArmed())
-                            return 2;
-                        else if (vehicleState.isFlying())
+                        if (vehicleState.isFlying())
                             return 1;
+                        else if (vehicleState.isArmed())
+                            return 2;
                         else
                             return 2;
                     }
@@ -165,7 +166,7 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
     }
 
     @Override
-    public Drawable getBackgroundForPage(int row, int column){
+    public Drawable getBackgroundForRow(int row){
         return this.background;
     }
 }

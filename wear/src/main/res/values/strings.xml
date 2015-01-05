@@ -13,5 +13,6 @@
     <string name="flight_modes">Flight Modes</string>
     <string name="open_app">Open App</string>
     <string name="preferences">Preferences</string>
+    <string name="label_follow_me_types">Follow Me Types</string>
 
 </resources>

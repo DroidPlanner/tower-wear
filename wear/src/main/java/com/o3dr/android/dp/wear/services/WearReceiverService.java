@@ -111,6 +111,8 @@ public class WearReceiverService extends WearRelayService {
             final int eventType = event.getType();
             handleDataItem(dataItem, eventType);
         }
+
+        dataEvents.release();
     }
 
     private void handleDataItem(DataItem dataItem, int eventType){
@@ -197,6 +199,8 @@ public class WearReceiverService extends WearRelayService {
                                     final DataItem dataItem = dataItems.get(i);
                                     handleDataItem(dataItem, DataEvent.TYPE_CHANGED);
                                 }
+
+                                dataItems.release();
                             }
                         });
             }

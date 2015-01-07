@@ -48,13 +48,13 @@ public class FollowMeRadiusSelector extends Activity implements WearableListView
         final int currentRadius;
         switch (radiusType) {
             case FollowMeRadiusFragment.HORIZONTAL_RADIUS_TYPE:
-                FollowState followState = intent.getParcelableExtra(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE);
+                FollowState followState = intent.getParcelableExtra(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE);
                 currentRadius = (int) followState.getRadius();
                 break;
 
             case FollowMeRadiusFragment.VERTICAL_RADIUS_TYPE:
             default:
-                GuidedState guidedState = intent.getParcelableExtra(FollowMeActivity.EXTRA_GUIDED_STATE);
+                GuidedState guidedState = intent.getParcelableExtra(WearUIActivity.EXTRA_GUIDED_STATE);
                 currentRadius = (int) guidedState.getCoordinate().getAltitude();
                 break;
         }

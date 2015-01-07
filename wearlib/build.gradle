@@ -19,6 +19,6 @@ android {
 }
 
 dependencies {
-    compile 'com.o3dr:3dr-services-lib:2.1.31'
+    compile 'com.o3dr:3dr-services-lib:2.1.35'
     compile 'com.google.android.gms:play-services-wearable:6.5.87'
 }

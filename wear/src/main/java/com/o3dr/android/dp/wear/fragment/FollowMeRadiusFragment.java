@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.os.Parcelable;
 
 import com.o3dr.android.dp.wear.R;
-import com.o3dr.android.dp.wear.activities.FollowMeActivity;
+import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.activities.FollowMeRadiusSelector;
 
 /**
@@ -48,8 +48,8 @@ public class FollowMeRadiusFragment extends BaseActionFragment {
     @Override
     protected void onActionClicked() {
         final String dataKey = radiusType == HORIZONTAL_RADIUS_TYPE
-                ? FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE
-                : FollowMeActivity.EXTRA_GUIDED_STATE;
+                ? WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE
+                : WearUIActivity.EXTRA_GUIDED_STATE;
         final Parcelable data = radiusType == HORIZONTAL_RADIUS_TYPE
                 ? getVehicleFollowState()
                 : getVehicleGuidedState();

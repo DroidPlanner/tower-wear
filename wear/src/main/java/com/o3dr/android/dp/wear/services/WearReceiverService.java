@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Parcelable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.wearable.activity.ConfirmationActivity;
@@ -22,15 +21,12 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.ContextStreamActivity;
-import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
-import com.o3dr.android.dp.wear.activities.FollowMeActivity;
+import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
-import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.State;
-import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
@@ -145,44 +141,6 @@ public class WearReceiverService extends WearRelayService {
         }
     }
 
-    private NotificationCompat.Action getDisconnectAction(Context context) {
-        final Intent disconnectIntent = new Intent(context, WearReceiverService.class)
-                .setAction(WearUtils.ACTION_DISCONNECT);
-        final PendingIntent disconnectPI = PendingIntent.getService(context, 0, disconnectIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action disconnectAction = new NotificationCompat.Action(R.drawable
-                .ic_settings_power_white_48dp, getText(R.string.disconnect), disconnectPI);
-
-        return disconnectAction;
-    }
-
-    private NotificationCompat.Action getFlightModesAction(Context context, VehicleMode vehicleMode) {
-        if (vehicleMode == null)
-            vehicleMode = VehicleMode.UNKNOWN;
-
-        final Intent flightModesIntent = new Intent(context, FlightModesSelectionActivity.class)
-                .setAction(AttributeEvent.STATE_VEHICLE_MODE)
-                .putExtra(EXTRA_EVENT_DATA, (Parcelable) vehicleMode);
-        final PendingIntent flightModesPI = PendingIntent.getActivity(context, 0, flightModesIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action flightModeAction = new NotificationCompat.Action(R.drawable
-                .ic_flight_white_48dp, vehicleMode.getLabel(), flightModesPI);
-
-        return flightModeAction;
-    }
-
-    private NotificationCompat.Action getFollowMeAction(Context context, State vehicleState){
-        final Intent openWearAppIntent = new Intent(context, FollowMeActivity.class)
-                .setAction(AttributeType.STATE)
-                .putExtra(EXTRA_EVENT_DATA, vehicleState);
-        final PendingIntent openFollowMePI = PendingIntent.getActivity(context, 0, openWearAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action openFollowMeAction = new NotificationCompat.Action(R.drawable.ic_follow,
-                getText(R.string.mission_control_follow), openFollowMePI);
-
-        return openFollowMeAction;
-    }
-
     private void updateContextStreamNotification(){
         final String dataPath = WearUtils.VEHICLE_DATA_PREFIX + AttributeType.STATE;
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
@@ -223,67 +181,24 @@ public class WearReceiverService extends WearRelayService {
         final NotificationCompat.WearableExtender extender = new NotificationCompat.WearableExtender()
                 .setBackground(BitmapFactory.decodeResource(res, R.drawable.wear_notification_bg))
                 .setDisplayIntent(displayPI)
-                .setCustomSizePreset(Notification.WearableExtender.SIZE_DEFAULT);
+                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE);
 
         final List<NotificationCompat.Action> actionsList = new ArrayList<>();
 
         //Flight action cards
         final boolean isConnected = vehicleState != null && vehicleState.isConnected();
-        int notificationPriority = NotificationCompat.PRIORITY_DEFAULT;
-        if (isConnected) {
-            notificationPriority = NotificationCompat.PRIORITY_MAX;
+        int notificationPriority = isConnected ? NotificationCompat.PRIORITY_MAX : NotificationCompat.PRIORITY_DEFAULT;
 
-            VehicleMode vehicleMode = vehicleState.getVehicleMode();
-            final boolean isCopter = vehicleMode == null || vehicleMode.getDroneType() == Type.TYPE_COPTER;
+        //Open full screen app
+        final Intent openWearAppIntent = new Intent(context, WearUIActivity.class)
+                .setAction(AttributeType.STATE)
+                .putExtra(EXTRA_EVENT_DATA, vehicleState);
+        final PendingIntent openWearAppPI = PendingIntent.getActivity(context, 0, openWearAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        final NotificationCompat.Action openWearAppAction = new NotificationCompat.Action(R.drawable.ic_fullscreen_white_48dp,
+                getText(R.string.open_app), openWearAppPI);
 
-            if (isCopter) {
-                if (vehicleState.isFlying()) {
-                    actionsList.add(getFollowMeAction(context, vehicleState));
-                    actionsList.add(getFlightModesAction(context, vehicleMode));
-                } else if (vehicleState.isArmed()) {
-                    final Intent takeOffIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
-                            .ACTION_TAKE_OFF);
-                    final PendingIntent takeOffPI = PendingIntent.getService(context, 0, takeOffIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-                    final NotificationCompat.Action takeOffAction = new NotificationCompat.Action(R.drawable.ic_takeoff,
-                            getText(R.string.take_off), takeOffPI);
-
-                    actionsList.add(takeOffAction);
-
-                    final Intent disarmIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
-                            .ACTION_DISARM);
-                    final PendingIntent disarmPI = PendingIntent.getService(context, 0, disarmIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-                    final NotificationCompat.Action disarmAction = new NotificationCompat.Action(R.drawable.ic_arm,
-                            getText(R.string.disarm), disarmPI);
-
-                    actionsList.add(disarmAction);
-                } else {
-                    final Intent armIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils.ACTION_ARM);
-                    final PendingIntent armPI = PendingIntent.getService(context, 0, armIntent,
-                            PendingIntent.FLAG_UPDATE_CURRENT);
-                    final NotificationCompat.Action armAction = new NotificationCompat.Action(R.drawable.ic_arm,
-                            getText(R.string.arm), armPI);
-
-                    actionsList.add(armAction);
-
-                    actionsList.add(getDisconnectAction(context));
-                }
-            } else {
-                actionsList.add(getFollowMeAction(context, vehicleState));
-                actionsList.add(getFlightModesAction(context, vehicleMode));
-                actionsList.add(getDisconnectAction(context));
-            }
-        } else {
-            final Intent connectIntent = new Intent(context, WearReceiverService.class)
-                    .setAction(WearUtils.ACTION_CONNECT);
-            final PendingIntent connectPI = PendingIntent.getService(context, 0, connectIntent,
-                    PendingIntent.FLAG_UPDATE_CURRENT);
-            final NotificationCompat.Action connectAction = new NotificationCompat
-                    .Action(R.drawable.ic_settings_power_white_48dp, getText(R.string.connect), connectPI);
-
-            actionsList.add(connectAction);
-        }
+        actionsList.add(openWearAppAction);
 
         //Open phone app card.
         final Intent settingsIntent = new Intent(context, WearReceiverService.class)

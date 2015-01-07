@@ -43,7 +43,7 @@ public class FollowMeTypesSelector extends Activity implements WearableListView.
         if (intent == null)
             return;
 
-        final FollowState followState = intent.getParcelableExtra(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE);
+        final FollowState followState = intent.getParcelableExtra(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE);
         if (followState != null) {
             RecyclerView.LayoutManager layoutMgr = followTypesView.getLayoutManager();
             if (layoutMgr != null) {

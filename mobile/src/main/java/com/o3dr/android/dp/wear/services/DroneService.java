@@ -363,6 +363,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                 attributeType = AttributeType.SIGNAL;
                 break;
 
+            case AttributeEvent.GPS_POSITION:
             case AttributeEvent.GPS_FIX:
             case AttributeEvent.GPS_COUNT:
                 attributeType = AttributeType.GPS;
@@ -376,6 +377,10 @@ public class DroneService extends Service implements ServiceListener, DroneListe
             case AttributeEvent.FOLLOW_STOP:
             case AttributeEvent.FOLLOW_UPDATE:
                 attributeType = AttributeType.FOLLOW_STATE;
+                break;
+
+            case AttributeEvent.HOME_UPDATED:
+                attributeType = AttributeType.HOME;
                 break;
         }
 

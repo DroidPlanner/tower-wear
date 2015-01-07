@@ -6,7 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 
-import com.o3dr.android.dp.wear.activities.FollowMeActivity;
+import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.fragment.ConnectActionFragment;
 import com.o3dr.android.dp.wear.fragment.ArmActionFragment;
 import com.o3dr.android.dp.wear.fragment.DisarmActionFragment;
@@ -120,9 +120,9 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
         }
 
         if(fragment != null){
-            args.putParcelable(FollowMeActivity.EXTRA_VEHICLE_STATE, vehicleState);
-            args.putParcelable(FollowMeActivity.EXTRA_VEHICLE_FOLLOW_STATE, vehicleFollowState);
-            args.putParcelable(FollowMeActivity.EXTRA_GUIDED_STATE, guidedState);
+            args.putParcelable(WearUIActivity.EXTRA_VEHICLE_STATE, vehicleState);
+            args.putParcelable(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE, vehicleFollowState);
+            args.putParcelable(WearUIActivity.EXTRA_GUIDED_STATE, guidedState);
             fragment.setArguments(args);
         }
 

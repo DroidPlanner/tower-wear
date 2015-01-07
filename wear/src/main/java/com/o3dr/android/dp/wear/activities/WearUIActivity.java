@@ -17,7 +17,7 @@ import com.o3dr.services.android.lib.util.ParcelableUtils;
 /**
  * Follow me ui implementation.
  */
-public class FollowMeActivity extends BaseActivity {
+public class WearUIActivity extends BaseActivity {
 
     public static final String EXTRA_VEHICLE_STATE = "extra_vehicle_state";
     public static final String EXTRA_VEHICLE_FOLLOW_STATE = "extra_vehicle_follow_state";

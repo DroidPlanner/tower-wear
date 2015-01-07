@@ -15,7 +15,7 @@ import org.w3c.dom.Text;
  */
 public class FollowMeRadiusAdapter extends WearableListView.Adapter {
 
-    public static final int MIN_RADIUS = 2; //meters
+    public static final int MIN_RADIUS = 3; //meters
     private static final int MAX_RADIUS = 200; //meters
 
     protected static class ViewHolder extends WearableListView.ViewHolder {
@@ -36,7 +36,7 @@ public class FollowMeRadiusAdapter extends WearableListView.Adapter {
     @Override
     public void onBindViewHolder(WearableListView.ViewHolder holder, int position) {
         final Integer radius = position + MIN_RADIUS;
-        ((ViewHolder)holder).radiusView.setText(radius.toString());
+        ((ViewHolder)holder).radiusView.setText(radius.toString() + " m");
         holder.itemView.setTag(radius);
     }
 

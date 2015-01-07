@@ -28,13 +28,11 @@ import com.o3dr.services.android.lib.gcs.follow.FollowState;
 public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
     private State vehicleState;
-    private final Drawable background;
     private FollowState vehicleFollowState;
     private GuidedState guidedState;
 
-    public ActionPagerAdapter(FragmentManager fm, Drawable background) {
+    public ActionPagerAdapter(FragmentManager fm) {
         super(fm);
-        this.background = background;
     }
 
     public void updateVehicleState(State state) {
@@ -67,13 +65,20 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
                     if(isCopter) {
                         if (vehicleState.isFlying()) {
+                            if(column == 0)
                             fragment = new FlightModesActionFragment();
+                            else{
+                                fragment = new DisconnectActionFragment();
+                            }
                         }
                         else if (vehicleState.isArmed()) {
                             if (column == 0) {
                                 fragment = new TakeOffActionFragment();
-                            } else {
+                            } else if(column == 1){
                                 fragment = new DisarmActionFragment();
+                            }
+                            else{
+                                fragment = new DisconnectActionFragment();
                             }
                         } else {
                             if (column == 0) {
@@ -149,9 +154,9 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
                     if(isCopter) {
                         if (vehicleState.isFlying())
-                            return 1;
-                        else if (vehicleState.isArmed())
                             return 2;
+                        else if (vehicleState.isArmed())
+                            return 3;
                         else
                             return 2;
                     }
@@ -163,10 +168,5 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
             case 1:
                 return 4;
         }
-    }
-
-    @Override
-    public Drawable getBackgroundForRow(int row){
-        return this.background;
     }
 }

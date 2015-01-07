@@ -4,15 +4,13 @@
     <string name="app_name">DP-Wear</string>
     <string name="connect">Connect</string>
     <string name="disconnect">Disconnect</string>
-    <string name="mission_control_follow">Follow Me</string>
     <string name="empty_content">--</string>
-    <string name="bar_gps_content_description">Vehicle GPS status</string>
     <string name="arm">Arm</string>
-    <string name="take_off">Take Off</string>
+    <string name="take_off">Take off</string>
     <string name="disarm">Disarm</string>
-    <string name="flight_modes">Flight Modes</string>
-    <string name="open_app">Open App</string>
-    <string name="preferences">Preferences</string>
-    <string name="label_follow_me_types">Follow Me Types</string>
+    <string name="flight_modes">Flight modes</string>
+    <string name="open_app">Open app</string>
+    <string name="preferences">Preferences on phone</string>
+    <string name="label_follow_me_types">Follow me types</string>
 
 </resources>

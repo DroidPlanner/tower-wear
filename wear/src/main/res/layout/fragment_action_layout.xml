@@ -25,8 +25,8 @@
         android:id="@+id/listing_action_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:text="Action Button Label"
-        android:textSize="18sp"
+        tools:text="Action Label"
+        android:textSize="19sp"
         android:textColor="@android:color/white"/>
 
 </LinearLayout>

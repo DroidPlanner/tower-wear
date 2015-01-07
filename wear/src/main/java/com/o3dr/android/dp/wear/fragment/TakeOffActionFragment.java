@@ -13,7 +13,7 @@ import com.o3dr.android.dp.wear.services.WearReceiverService;
 public class TakeOffActionFragment extends BaseActionFragment {
     @Override
     protected int getActionImageResource() {
-        return R.drawable.ic_takeoff;
+        return R.drawable.ic_file_upload_white_48dp;
     }
 
     @Override

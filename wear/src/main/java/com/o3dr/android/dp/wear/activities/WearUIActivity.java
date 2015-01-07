@@ -31,8 +31,7 @@ public class WearUIActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_follow_me_control);
 
-        actionPagerAdapter = new ActionPagerAdapter(getFragmentManager(),
-                getResources().getDrawable(R.drawable.wear_notification_bg));
+        actionPagerAdapter = new ActionPagerAdapter(getFragmentManager());
 
         gridView = (GridViewPager) findViewById(R.id.grid_view_pager);
         gridView.setAdapter(actionPagerAdapter);

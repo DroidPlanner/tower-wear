@@ -205,8 +205,8 @@ public class WearReceiverService extends WearRelayService {
                 .setAction(WearUtils.ACTION_OPEN_PHONE_APP);
         final PendingIntent settingsPI = PendingIntent.getService(context, 0, settingsIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action settingsAction = new NotificationCompat.Action(R.drawable.go_to_phone_00156,
-                getText(R.string.preferences), settingsPI);
+        final NotificationCompat.Action settingsAction = new NotificationCompat.Action(R.drawable
+                .ic_settings_white_48dp, getText(R.string.preferences), settingsPI);
 
         actionsList.add(settingsAction);
 

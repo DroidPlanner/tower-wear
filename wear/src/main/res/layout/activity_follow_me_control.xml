@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.wearable.view.GridViewPager
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/grid_view_pager"
+    android:background="@drawable/wear_notification_bg"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
     tools:deviceIds="wear"
-    tools:context=".activities.FollowMeActivity"/>
+    tools:context=".activities.FollowMeActivity">
 
+    <android.support.wearable.view.GridViewPager
+        android:id="@+id/grid_view_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"/>
+</FrameLayout>

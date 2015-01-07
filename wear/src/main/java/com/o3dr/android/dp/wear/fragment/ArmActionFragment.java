@@ -13,7 +13,7 @@ import com.o3dr.android.dp.wear.services.WearReceiverService;
 public class ArmActionFragment extends BaseActionFragment {
     @Override
     protected int getActionImageResource() {
-        return R.drawable.ic_arm;
+        return R.drawable.ic_lock_white_48dp;
     }
 
     @Override

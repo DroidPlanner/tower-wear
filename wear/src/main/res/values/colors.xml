@@ -3,4 +3,12 @@
     <color name="wl_blue">#2878ff</color>
     <color name="wl_gray">#c1c1c1</color>
     <color name="text_color">#434343</color>
+
+    <color name="default_circle_indicator_fill_color">#FFFFFFFF</color>
+    <color name="default_circle_indicator_page_color">#00000000</color>
+    <color name="default_circle_indicator_stroke_color">#FFDDDDDD</color>
+
+    <color name="default_line_indicator_selected_color">#FF33B5E5</color>
+    <color name="default_line_indicator_unselected_color">#FFBBBBBB</color>
+
 </resources>

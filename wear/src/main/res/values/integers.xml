@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <integer name="action_text_faded_alpha">40</integer>
+
+    <integer name="default_indicator_page_count">2</integer>
+    <integer name="default_circle_indicator_orientation">0</integer>
 </resources>

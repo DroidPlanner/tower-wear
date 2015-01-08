@@ -18,12 +18,6 @@
             android:summary="@string/enter_or_pick_a_password"
             android:title="@string/pref_dshare_password_title" />
 
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/pref_dshare_enabled_key"
-            android:summary="@string/do_you_want_to_use_droneshare_"
-            android:title="@string/droneshare_enabled" />
-
         <!-- FIXME: Live upload is disabled because it often causes the app to crash on disconnect -->
         <!--
             <CheckBoxPreference
@@ -154,17 +148,6 @@
                 android:key="pref_mavlink_stream_rate_raw_controller"
                 android:title="@string/pref_mavlink_stream_rate_raw_controller" />
         </PreferenceScreen>
-    </PreferenceCategory>
-
-    <!-- Wear Notification preferences -->
-    <PreferenceCategory android:title="Wear Context Stream Notification">
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/pref_enable_context_stream_notification_key"
-            android:summary="Used to enable context stream notification on the wear device"
-            android:title="Enable context stream notification"/>
-        <CheckBoxPreference
-            />
     </PreferenceCategory>
 
     <!-- Analytics related preferences. -->

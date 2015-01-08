@@ -34,10 +34,8 @@
     <string name="pref_forget_bluetooth_device_address">Forget default device</string>
     <string name="pref_forget_bluetooth_device_address_confirm">Are you sure?</string>
     <string name="pref_bluetooth_forget">Forget</string>
-    <string name="user_account_category">User Account</string>
+    <string name="user_account_category">DroneShare User Account</string>
     <string name="droneshare_username">Droneshare username</string>
-    <string name="droneshare_enabled">Droneshare enabled</string>
-    <string name="do_you_want_to_use_droneshare_">Do you want to use Droneshare?</string>
     <string name="pref_dshare_username_title">Username</string>
     <string name="pref_dshare_password_title">Password</string>
     <string name="droneshare_password">Droneshare password</string>

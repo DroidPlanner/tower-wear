@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_name" translatable="false">DP-Wear</string>
-
     <!-- App Settings/Preferences -->
     <string name="pref_connection_type">Telemetry Connection Type</string>
     <string name="pref_connection_type_summary">Which link to use to connect to the drone</string>

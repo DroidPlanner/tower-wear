@@ -3,6 +3,7 @@ package com.o3dr.android.dp.wear.fragment;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.wearable.view.CircledImageView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,9 +25,14 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
     private FollowState vehicleFollowState;
     private GuidedState guidedState;
 
+    private Vibrator vibrator;
+
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+
+        vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+
         Bundle arguments = getArguments();
         if(arguments != null) {
             vehicleState = arguments.getParcelable(WearUIActivity.EXTRA_VEHICLE_STATE);
@@ -82,6 +88,7 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.listing_action_image:
+                vibrator.vibrate(20);
                 onActionClicked();
                 break;
         }

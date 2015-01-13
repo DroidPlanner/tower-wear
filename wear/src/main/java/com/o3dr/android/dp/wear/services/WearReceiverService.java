@@ -17,6 +17,7 @@ import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.R;
@@ -230,5 +231,11 @@ public class WearReceiverService extends WearRelayService {
     private void cancelNotification() {
         //Remove the notification from the context stream
         NotificationManagerCompat.from(getApplicationContext()).cancel(WEAR_NOTIFICATION_ID);
+    }
+
+    @Override
+    public void onPeerDisconnected(Node peer){
+        //Cancel the notification
+        cancelNotification();
     }
 }

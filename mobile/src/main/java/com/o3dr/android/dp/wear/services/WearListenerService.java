@@ -73,4 +73,10 @@ public class WearListenerService extends WearRelayService {
     public void onPeerConnected(Node peer) {
         Log.d(TAG, "Connected to wear node " + peer.getDisplayName());
     }
+
+    @Override
+    public void onPeerDisconnected(Node peer){
+        //If connected, disconnect.
+        startService(new Intent(getApplicationContext(), DroneService.class).setAction(WearUtils.ACTION_DISCONNECT));
+    }
 }

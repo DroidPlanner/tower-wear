@@ -91,6 +91,7 @@ public class ContextStreamActivity extends BaseActivity {
                 State vehicleState = eventData == null ? null : ParcelableUtils.unmarshall(eventData, State.CREATOR);
                 final boolean isConnected = vehicleState != null && vehicleState.isConnected();
                 activityLayout.setKeepScreenOn(isConnected);
+
                 final CharSequence connectionLabel;
                 if (isConnected) {
                     VehicleMode flightMode = vehicleState.getVehicleMode();

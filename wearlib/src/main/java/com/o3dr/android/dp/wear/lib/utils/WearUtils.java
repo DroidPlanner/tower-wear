@@ -19,6 +19,8 @@ import com.google.android.gms.wearable.Wearable;
  */
 public class WearUtils {
 
+    public static final String TOWER_APP_ID = "org.droidplanner.android";
+
     private static final String TAG = WearUtils.class.getSimpleName();
 
     public static final String PACKAGE_NAME = "com.o3dr.android.dp.wear";

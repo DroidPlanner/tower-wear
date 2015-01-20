@@ -7,7 +7,6 @@ import android.text.TextUtils;
 
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
-import com.o3dr.services.android.lib.drone.connection.StreamRates;
 
 /**
  * Provides structured access to the app preferences.
@@ -87,21 +86,7 @@ public class AppPreferences {
         return Integer.parseInt(prefs.getString(context.getString(R.string.pref_udp_server_port_key), DEFAULT_UDP_SERVER_PORT));
     }
 
-    public StreamRates getStreamRates() {
-        StreamRates rates = new StreamRates();
-
-        rates.setExtendedStatus(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_ext_stat", "2")));
-        rates.setExtra1(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_extra1", "2")));
-        rates.setExtra2(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_extra2", "2")));
-        rates.setExtra3(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_extra3", "2")));
-        rates.setPosition(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_position", "2")));
-        rates.setRcChannels(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_rc_channels", "2")));
-        rates.setRawSensors(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_raw_sensors", "2")));
-        rates.setRawController(Integer.parseInt(prefs.getString("pref_mavlink_stream_rate_raw_controller", "2")));
-        return rates;
-    }
-
-    public boolean getLiveUploadEnabled() {
+    public boolean isLiveUploadEnabled() {
         // FIXME: Disabling live upload as it often causes the app to freeze on
         // disconnect.
         // return
@@ -135,7 +120,7 @@ public class AppPreferences {
         prefs.edit().putString(context.getString(R.string.pref_dshare_password_key), b.trim()).apply();
     }
 
-    public boolean getDroneshareEnabled() {
+    public boolean isDroneshareEnabled() {
         return !TextUtils.isEmpty(getDroneshareLogin()) && !TextUtils.isEmpty(getDronesharePassword());
     }
 }

@@ -72,6 +72,8 @@ public class WearListenerService extends WearRelayService {
     @Override
     public void onPeerConnected(Node peer) {
         Log.d(TAG, "Connected to wear node " + peer.getDisplayName());
+        startService(new Intent(getApplicationContext(), DroneService.class)
+                .setAction(WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION));
     }
 
     @Override

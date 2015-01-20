@@ -25,6 +25,14 @@
             android:launchMode="singleTask"
             android:theme="@style/AppDialogTheme"/>
 
+        <receiver android:name=".receivers.GCSEventsReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.o3dr.services.android.lib.gcs.event.action.VEHICLE_CONNECTION" />
+                <action android:name="com.o3dr.services.android.lib.gcs.event.action.VEHICLE_DISCONNECTION" />
+            </intent-filter>
+        </receiver>
+        
         <service android:name=".services.DroneService" />
 
         <service android:name=".services.WearListenerService">

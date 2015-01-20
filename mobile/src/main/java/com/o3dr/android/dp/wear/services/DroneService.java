@@ -25,8 +25,8 @@ import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
 import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
 import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
-import com.o3dr.services.android.lib.drone.connection.StreamRates;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
+import com.o3dr.services.android.lib.gcs.event.GCSEvent;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
@@ -43,6 +43,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
     private static final long WATCHDOG_TIMEOUT = 30 * 1000; //ms
 
     static final String EXTRA_ACTION_DATA = "extra_action_data";
+    public static final String EXTRA_CONNECTION_PARAMETER = "extra_connection_parameter";
 
     private final Handler handler = new Handler();
 
@@ -99,6 +100,27 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         return null;
     }
 
+    private void connectDrone(ConnectionParameter connParams){
+        if(connParams != null) {
+            if(appPrefs.isDroneshareEnabled()){
+                final String username = appPrefs.getDroneshareLogin();
+                final String password = appPrefs.getDronesharePassword();
+                final DroneSharePrefs dsharePrefs = new DroneSharePrefs(username, password, true, appPrefs.isLiveUploadEnabled());
+                connParams = new ConnectionParameter(connParams.getConnectionType(), connParams.getParamsBundle(),
+                        dsharePrefs);
+            }
+
+            final ConnectionParameter parameter = connParams;
+
+            executeDroneAction(new Runnable() {
+                @Override
+                public void run() {
+                    drone.connect(parameter);
+                }
+            });
+        }
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId){
         if(intent != null){
@@ -108,18 +130,37 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                 switch(action){
                     case WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION:
                         sendMessage(action, null);
-                        break;
 
-                    case WearUtils.ACTION_CONNECT:
-                        final ConnectionParameter connParams = retrieveConnectionParameters();
-                        if(connParams != null) {
+                        if(!drone.isConnected()){
+                            //Check if the Tower app connected behind our back.
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    drone.connect(connParams);
+                                    Bundle[] appsInfo = serviceManager.getConnectedApps();
+                                    if(appsInfo == null)
+                                        return;
+
+                                    for(Bundle info: appsInfo){
+                                        info.setClassLoader(ConnectionParameter.class.getClassLoader());
+                                        final String appId = info.getString(GCSEvent.EXTRA_APP_ID);
+                                        if(WearUtils.TOWER_APP_ID.equals(appId)){
+                                            final ConnectionParameter connParams = info.getParcelable(GCSEvent
+                                                    .EXTRA_VEHICLE_CONNECTION_PARAMETER);
+                                            connectDrone(connParams);
+                                            return;
+                                        }
+                                    }
                                 }
                             });
                         }
+                        break;
+
+                    case WearUtils.ACTION_CONNECT:
+                        ConnectionParameter connParams = intent.getParcelableExtra(EXTRA_CONNECTION_PARAMETER);
+                        if(connParams == null)
+                            connParams = retrieveConnectionParameters();
+
+                        connectDrone(connParams);
                         break;
 
                     case WearUtils.ACTION_DISCONNECT:
@@ -256,30 +297,26 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
     private ConnectionParameter retrieveConnectionParameters(){
         final int connectionType = appPrefs.getConnectionParameterType();
-        final StreamRates rates = appPrefs.getStreamRates();
         Bundle extraParams = new Bundle();
         final DroneSharePrefs droneSharePrefs = new DroneSharePrefs(appPrefs.getDroneshareLogin(),
-                appPrefs.getDronesharePassword(), appPrefs.getDroneshareEnabled(), appPrefs.getLiveUploadEnabled());
+                appPrefs.getDronesharePassword(), appPrefs.isDroneshareEnabled(), appPrefs.isLiveUploadEnabled());
 
         ConnectionParameter connParams;
         switch (connectionType) {
             case ConnectionType.TYPE_USB:
                 extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, appPrefs.getUsbBaudRate());
-                connParams = new ConnectionParameter(connectionType, extraParams, rates,
-                        droneSharePrefs);
+                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
                 break;
 
             case ConnectionType.TYPE_UDP:
                 extraParams.putInt(ConnectionType.EXTRA_UDP_SERVER_PORT, appPrefs.getUdpServerPort());
-                connParams = new ConnectionParameter(connectionType, extraParams, rates,
-                        droneSharePrefs);
+                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
                 break;
 
             case ConnectionType.TYPE_TCP:
                 extraParams.putString(ConnectionType.EXTRA_TCP_SERVER_IP, appPrefs.getTcpServerIp());
                 extraParams.putInt(ConnectionType.EXTRA_TCP_SERVER_PORT, appPrefs.getTcpServerPort());
-                connParams = new ConnectionParameter(connectionType, extraParams, rates,
-                        droneSharePrefs);
+                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
                 break;
 
             case ConnectionType.TYPE_BLUETOOTH:
@@ -291,8 +328,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                 } else {
                     extraParams.putString(ConnectionType.EXTRA_BLUETOOTH_ADDRESS, btAddress);
-                    connParams = new ConnectionParameter(connectionType, extraParams, rates,
-                            droneSharePrefs);
+                    connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
                 }
                 break;
 

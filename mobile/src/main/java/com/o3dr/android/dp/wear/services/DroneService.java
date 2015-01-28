@@ -7,15 +7,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Parcelable;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.android.gms.wearable.Wearable;
+import com.o3dr.android.client.ControlTower;
 import com.o3dr.android.client.Drone;
-import com.o3dr.android.client.ServiceManager;
+import com.o3dr.android.client.apis.gcs.FollowApi;
 import com.o3dr.android.client.interfaces.DroneListener;
-import com.o3dr.android.client.interfaces.ServiceListener;
-import com.o3dr.android.dp.wear.activities.BluetoothDevicesActivity;
+import com.o3dr.android.client.interfaces.TowerListener;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.utils.AppPreferences;
@@ -23,7 +22,6 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
 import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
-import com.o3dr.services.android.lib.drone.connection.ConnectionType;
 import com.o3dr.services.android.lib.drone.connection.DroneSharePrefs;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.event.GCSEvent;
@@ -36,7 +34,7 @@ import java.util.LinkedList;
 /**
  * Created by fhuya on 12/27/14.
  */
-public class DroneService extends Service implements ServiceListener, DroneListener {
+public class DroneService extends Service implements TowerListener, DroneListener {
 
     private static final String TAG = DroneService.class.getSimpleName();
 
@@ -52,7 +50,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         public void run() {
             handler.removeCallbacks(this);
 
-            if(drone == null || !drone.isConnected()){
+            if (drone == null || !drone.isConnected()) {
                 stopSelf();
             }
 
@@ -63,13 +61,13 @@ public class DroneService extends Service implements ServiceListener, DroneListe
     private final LinkedList<Runnable> droneActionsQueue = new LinkedList<>();
 
     private AppPreferences appPrefs;
-    private ServiceManager serviceManager;
+    private ControlTower controlTower;
     private Drone drone;
 
     protected GoogleApiClientManager apiClientMgr;
 
     @Override
-    public void onCreate(){
+    public void onCreate() {
         super.onCreate();
 
         final Context context = getApplicationContext();
@@ -77,20 +75,20 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         apiClientMgr = new GoogleApiClientManager(context, handler, Wearable.API);
         apiClientMgr.start();
 
-        serviceManager = new ServiceManager(context);
-        serviceManager.connect(this);
+        controlTower = new ControlTower(context);
+        controlTower.connect(this);
 
-        this.drone = new Drone(serviceManager, handler);
+        this.drone = new Drone();
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         apiClientMgr.stop();
 
         //Clean out the service manager, and drone instances.
-        drone.destroy();
-        serviceManager.disconnect();
+        controlTower.unregisterDrone(drone);
+        controlTower.disconnect();
 
         handler.removeCallbacks(destroyWatchdog);
     }
@@ -100,50 +98,40 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         return null;
     }
 
-    private void connectDrone(ConnectionParameter connParams){
-        if(connParams != null) {
-            if(appPrefs.isDroneshareEnabled()){
-                final String username = appPrefs.getDroneshareLogin();
-                final String password = appPrefs.getDronesharePassword();
-                final DroneSharePrefs dsharePrefs = new DroneSharePrefs(username, password, true, appPrefs.isLiveUploadEnabled());
-                connParams = new ConnectionParameter(connParams.getConnectionType(), connParams.getParamsBundle(),
-                        dsharePrefs);
-            }
-
-            final ConnectionParameter parameter = connParams;
-
+    private void connectDrone(final ConnectionParameter connParams) {
+        if (connParams != null) {
             executeDroneAction(new Runnable() {
                 @Override
                 public void run() {
-                    drone.connect(parameter);
+                    drone.connect(connParams);
                 }
             });
         }
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId){
-        if(intent != null){
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
             final String action = intent.getAction();
-            if(action != null){
+            if (action != null) {
 
-                switch(action){
+                switch (action) {
                     case WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION:
                         sendMessage(action, null);
 
-                        if(!drone.isConnected()){
+                        if (!drone.isConnected()) {
                             //Check if the Tower app connected behind our back.
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Bundle[] appsInfo = serviceManager.getConnectedApps();
-                                    if(appsInfo == null)
+                                    Bundle[] appsInfo = controlTower.getConnectedApps();
+                                    if (appsInfo == null)
                                         return;
 
-                                    for(Bundle info: appsInfo){
+                                    for (Bundle info : appsInfo) {
                                         info.setClassLoader(ConnectionParameter.class.getClassLoader());
                                         final String appId = info.getString(GCSEvent.EXTRA_APP_ID);
-                                        if(WearUtils.TOWER_APP_ID.equals(appId)){
+                                        if (WearUtils.TOWER_APP_ID.equals(appId)) {
                                             final ConnectionParameter connParams = info.getParcelable(GCSEvent
                                                     .EXTRA_VEHICLE_CONNECTION_PARAMETER);
                                             connectDrone(connParams);
@@ -157,10 +145,8 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                     case WearUtils.ACTION_CONNECT:
                         ConnectionParameter connParams = intent.getParcelableExtra(EXTRA_CONNECTION_PARAMETER);
-                        if(connParams == null)
-                            connParams = retrieveConnectionParameters();
-
-                        connectDrone(connParams);
+                        if (connParams != null)
+                            connectDrone(connParams);
                         break;
 
                     case WearUtils.ACTION_DISCONNECT:
@@ -201,7 +187,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                     case WearUtils.ACTION_CHANGE_VEHICLE_MODE:
                         final VehicleMode vehicleMode = intent.getParcelableExtra(EXTRA_ACTION_DATA);
-                        if(vehicleMode != null){
+                        if (vehicleMode != null) {
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
@@ -217,10 +203,10 @@ public class DroneService extends Service implements ServiceListener, DroneListe
                             public void run() {
                                 FollowState followState = drone.getAttribute(AttributeType.FOLLOW_STATE);
                                 FollowType followType = null;
-                                if(followState != null)
+                                if (followState != null)
                                     followType = followState.getMode();
 
-                                if(followType == null)
+                                if (followType == null)
                                     followType = FollowType.LEASH;
                                 drone.enableFollowMe(followType);
                             }
@@ -238,7 +224,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                     case WearUtils.ACTION_CHANGE_FOLLOW_ME_TYPE:
                         final FollowType followType = intent.getParcelableExtra(EXTRA_ACTION_DATA);
-                        if(followType != null) {
+                        if (followType != null) {
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
@@ -250,7 +236,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                     case WearUtils.ACTION_SET_GUIDED_ALTITUDE:
                         final int altitude = intent.getIntExtra(EXTRA_ACTION_DATA, -1);
-                        if(altitude != -1){
+                        if (altitude != -1) {
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
@@ -262,11 +248,13 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
                     case WearUtils.ACTION_SET_FOLLOW_ME_RADIUS:
                         final int radius = intent.getIntExtra(EXTRA_ACTION_DATA, -1);
-                        if(radius != -1){
+                        if (radius != -1) {
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
-                                    drone.setFollowMeRadius(radius);
+                                    Bundle params = new Bundle();
+                                    params.putDouble(FollowType.EXTRA_FOLLOW_RADIUS, radius);
+                                    FollowApi.updateFollowParams(drone, params);
                                 }
                             });
                         }
@@ -282,80 +270,34 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         return START_REDELIVER_INTENT;
     }
 
-    private byte[] getDroneAttribute(String attributeType){
+    private byte[] getDroneAttribute(String attributeType) {
         final Parcelable attribute = drone.getAttribute(attributeType);
         return attribute == null ? null : ParcelableUtils.marshall(attribute);
     }
 
-    private void executeDroneAction(final Runnable action){
-        if(drone.isStarted())
+    private void executeDroneAction(final Runnable action) {
+        if (drone.isStarted())
             action.run();
-        else{
+        else {
             droneActionsQueue.offer(action);
         }
     }
 
-    private ConnectionParameter retrieveConnectionParameters(){
-        final int connectionType = appPrefs.getConnectionParameterType();
-        Bundle extraParams = new Bundle();
-        final DroneSharePrefs droneSharePrefs = new DroneSharePrefs(appPrefs.getDroneshareLogin(),
-                appPrefs.getDronesharePassword(), appPrefs.isDroneshareEnabled(), appPrefs.isLiveUploadEnabled());
-
-        ConnectionParameter connParams;
-        switch (connectionType) {
-            case ConnectionType.TYPE_USB:
-                extraParams.putInt(ConnectionType.EXTRA_USB_BAUD_RATE, appPrefs.getUsbBaudRate());
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
-
-            case ConnectionType.TYPE_UDP:
-                extraParams.putInt(ConnectionType.EXTRA_UDP_SERVER_PORT, appPrefs.getUdpServerPort());
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
-
-            case ConnectionType.TYPE_TCP:
-                extraParams.putString(ConnectionType.EXTRA_TCP_SERVER_IP, appPrefs.getTcpServerIp());
-                extraParams.putInt(ConnectionType.EXTRA_TCP_SERVER_PORT, appPrefs.getTcpServerPort());
-                connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                break;
-
-            case ConnectionType.TYPE_BLUETOOTH:
-                String btAddress = appPrefs.getBluetoothDeviceAddress();
-                if (TextUtils.isEmpty(btAddress)) {
-                    connParams = null;
-                    startActivity(new Intent(getApplicationContext(), BluetoothDevicesActivity.class)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-
-                } else {
-                    extraParams.putString(ConnectionType.EXTRA_BLUETOOTH_ADDRESS, btAddress);
-                    connParams = new ConnectionParameter(connectionType, extraParams, droneSharePrefs);
-                }
-                break;
-
-            default:
-                Log.e(TAG, "Unrecognized connection type: " + connectionType);
-                connParams = null;
-                break;
-        }
-
-        return connParams;
-    }
-
-    protected boolean sendMessage(String msgPath, byte[] msgData){
+    protected boolean sendMessage(String msgPath, byte[] msgData) {
         return WearUtils.asyncSendMessage(apiClientMgr, msgPath, msgData);
     }
 
     @Override
-    public void onServiceConnected() {
+    public void onTowerConnected() {
         Log.d(TAG, "3DR Services connected.");
-        if(!drone.isStarted()) {
+        if (!drone.isStarted()) {
             drone.registerDroneListener(this);
-            drone.start();
+            controlTower.registerDrone(drone, handler);
             updateAllVehicleAttributes();
             Log.d(TAG, "Drone started.");
 
-            if(!droneActionsQueue.isEmpty()){
-                for(Runnable action: droneActionsQueue){
+            if (!droneActionsQueue.isEmpty()) {
+                for (Runnable action : droneActionsQueue) {
                     action.run();
                 }
             }
@@ -363,7 +305,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
     }
 
     @Override
-    public void onServiceInterrupted() {
+    public void onTowerDisconnected() {
 
     }
 
@@ -375,7 +317,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
     @Override
     public void onDroneEvent(String event, Bundle bundle) {
         String attributeType = null;
-        switch(event){
+        switch (event) {
             case AttributeEvent.STATE_CONNECTED:
             case AttributeEvent.STATE_DISCONNECTED:
                 //Update all of the vehicle's properties.
@@ -423,7 +365,7 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         updateVehicleAttribute(attributeType);
     }
 
-    private void updateAllVehicleAttributes(){
+    private void updateAllVehicleAttributes() {
         updateVehicleAttribute(AttributeType.ALTITUDE);
         updateVehicleAttribute(AttributeType.ATTITUDE);
         updateVehicleAttribute(AttributeType.BATTERY);
@@ -435,8 +377,8 @@ public class DroneService extends Service implements ServiceListener, DroneListe
         updateVehicleAttribute(AttributeType.TYPE);
     }
 
-    private void updateVehicleAttribute(String attributeType){
-        if(attributeType != null) {
+    private void updateVehicleAttribute(String attributeType) {
+        if (attributeType != null) {
             byte[] eventData = getDroneAttribute(attributeType);
             String dataPath = WearUtils.VEHICLE_DATA_PREFIX + attributeType;
             WearUtils.asyncPutDataItem(apiClientMgr, dataPath, eventData);
@@ -445,6 +387,6 @@ public class DroneService extends Service implements ServiceListener, DroneListe
 
     @Override
     public void onDroneServiceInterrupted(String s) {
-        drone.destroy();
+        controlTower.unregisterDrone(drone);
     }
 }

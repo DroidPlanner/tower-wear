@@ -13,6 +13,7 @@ import com.o3dr.android.dp.wear.services.WearReceiverService;
 import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
+import com.o3dr.services.android.lib.gcs.follow.FollowType;
 
 /**
  * Created by fhuya on 1/5/15.
@@ -49,7 +50,8 @@ public class FollowMeRadiusSelector extends Activity implements WearableListView
         switch (radiusType) {
             case FollowMeRadiusFragment.HORIZONTAL_RADIUS_TYPE:
                 FollowState followState = intent.getParcelableExtra(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE);
-                currentRadius = (int) followState.getRadius();
+                Bundle params = followState.getParams();
+                currentRadius = (int) params.getDouble(FollowType.EXTRA_FOLLOW_RADIUS, 2);
                 break;
 
             case FollowMeRadiusFragment.VERTICAL_RADIUS_TYPE:

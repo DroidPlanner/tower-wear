@@ -21,5 +21,6 @@ android {
 
 dependencies {
     compile 'com.google.android.support:wearable:1.1.0'
+    compile files('libs/sius-0.3.2-SNAPSHOT')
     compile project(':wearlib')
 }

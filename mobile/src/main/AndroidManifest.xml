@@ -18,13 +18,6 @@
             </intent-filter>
             </activity>
 
-        <activity
-            android:name=".activities.BluetoothDevicesActivity"
-            android:noHistory="true"
-            android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:theme="@style/AppDialogTheme"/>
-
         <receiver android:name=".receivers.GCSEventsReceiver"
             android:exported="true">
             <intent-filter>

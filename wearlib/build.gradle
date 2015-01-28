@@ -7,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 18
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0"
     }
     buildTypes {
         release {
@@ -19,6 +19,6 @@ android {
 }
 
 dependencies {
-    compile 'com.o3dr:3dr-services-lib:2.1.48'
+    compile 'com.o3dr:3dr-services-lib:2.2.6'
     compile 'com.google.android.gms:play-services-wearable:6.5.87'
 }

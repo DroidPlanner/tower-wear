@@ -1,13 +1,17 @@
 package com.o3dr.android.dp.wear.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.utils.AppPreferences;
 
 /**
@@ -17,16 +21,80 @@ public class SettingsFragment extends PreferenceFragment {
 
     private static final String TAG = SettingsFragment.class.getSimpleName();
 
+    public static final String ACTION_PREFERENCES_UPDATED = WearUtils.PACKAGE_NAME + ".action.PREFERENCES_UPDATED";
+    public static final String EXTRA_PREFERENCE_KEY = "extra_preference_key";
+
     private AppPreferences appPrefs;
+    private LocalBroadcastManager broadcastManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
 
-        appPrefs = new AppPreferences(getActivity().getApplicationContext());
+        final Context context = getActivity().getApplicationContext();
+        appPrefs = new AppPreferences(context);
+        broadcastManager = LocalBroadcastManager.getInstance(context);
 
         setupVersionPref();
+        setupUnitSystemPreferences();
+
+        //Checkbox preferences
+        setupCheckBoxPreference(R.string.pref_ui_gps_hdop_key);
+        setupCheckBoxPreference(R.string.pref_keep_screen_bright_key);
+        setupCheckBoxPreference(R.string.pref_permanent_notification_key);
+    }
+
+    private void setupCheckBoxPreference(final int prefKeyId){
+        Preference pref = findPreference(getString(prefKeyId));
+        if (pref != null) {
+            pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    broadcastManager.sendBroadcast(new Intent(ACTION_PREFERENCES_UPDATED)
+                            .putExtra(EXTRA_PREFERENCE_KEY, prefKeyId));
+                    return true;
+                }
+            });
+        }
+    }
+
+    private void setupUnitSystemPreferences() {
+        ListPreference unitSystemPref = (ListPreference) findPreference(getString(R.string.pref_unit_system_key));
+        if (unitSystemPref != null) {
+            int defaultUnitSystem = appPrefs.getUnitSystemType();
+            updateUnitSystemSummary(unitSystemPref, defaultUnitSystem);
+            unitSystemPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    int unitSystem = Integer.parseInt((String) newValue);
+                    updateUnitSystemSummary(preference, unitSystem);
+                    broadcastManager.sendBroadcast(new Intent(ACTION_PREFERENCES_UPDATED)
+                            .putExtra(EXTRA_PREFERENCE_KEY, R.string.pref_unit_system_key));
+                    return true;
+                }
+            });
+        }
+    }
+
+    private void updateUnitSystemSummary(Preference preference, int unitSystemType) {
+        final int summaryResId;
+        switch (unitSystemType) {
+            case 0:
+            default:
+                summaryResId = R.string.unit_system_entry_auto;
+                break;
+
+            case 1:
+                summaryResId = R.string.unit_system_entry_metric;
+                break;
+
+            case 2:
+                summaryResId = R.string.unit_system_entry_imperial;
+                break;
+        }
+
+        preference.setSummary(summaryResId);
     }
 
     private void setupVersionPref() {

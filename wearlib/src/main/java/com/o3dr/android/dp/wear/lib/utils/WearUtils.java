@@ -31,6 +31,8 @@ public class WearUtils {
 
     public static final String ACTION_PREFIX = ROOT_PATH + "/action";
 
+    private static final String PREFERENCE_PREFIX = ROOT_PATH + "/app_prefs";
+
     /* List of supported actions */
 
     /**
@@ -59,6 +61,11 @@ public class WearUtils {
     public static final String ACTION_SET_GUIDED_ALTITUDE = ACTION_PREFIX + "/set_guided_altitude";
     public static final String ACTION_SET_FOLLOW_ME_RADIUS = ACTION_PREFIX + "/set_follow_me_radius";
 
+    /* List of app preferences */
+    public static final String PREF_IS_HDOP_ENABLED = PREFERENCE_PREFIX + "/hdop_enabled";
+    public static final String PREF_NOTIFICATION_PERMANENT = PREFERENCE_PREFIX + "/permanent_notification";
+    public static final String PREF_SCREEN_STAYS_ON = PREFERENCE_PREFIX + "/screen_stays_on";
+    public static final String PREF_UNIT_SYSTEM = PREFERENCE_PREFIX + "/unit_system";
 
     /**
      * Asynchronously send a message using the Wearable.MessageApi api to connected wear nodes.

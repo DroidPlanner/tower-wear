@@ -10,6 +10,7 @@ import android.support.wearable.view.GridPagerAdapter;
 import android.support.wearable.view.GridViewPager;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.services.WearReceiverService;
 import com.o3dr.android.dp.wear.widgets.adapters.ActionPagerAdapter;
@@ -102,8 +103,8 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
                 break;
 
             case AttributeType.FOLLOW_STATE:
-                FollowState vehicleFollowState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
-                        FollowState.CREATOR);
+                WearFollowState vehicleFollowState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
+                        WearFollowState.CREATOR);
                 actionPagerAdapter.updateFollowState(vehicleFollowState);
                 break;
 

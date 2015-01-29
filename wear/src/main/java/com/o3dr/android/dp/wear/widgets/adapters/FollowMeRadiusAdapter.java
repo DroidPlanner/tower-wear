@@ -7,7 +7,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.unit.providers.length.LengthUnitProvider;
 
+import org.beyene.sius.operation.Operation;
+import org.beyene.sius.unit.length.LengthUnit;
 import org.w3c.dom.Text;
 
 /**
@@ -27,6 +30,26 @@ public class FollowMeRadiusAdapter extends WearableListView.Adapter {
         }
     }
 
+    private LengthUnitProvider lengthUnitProvider;
+    private LengthUnit minRadius;
+    private LengthUnit maxRadius;
+
+    public FollowMeRadiusAdapter(LengthUnitProvider lengthUnitProvider){
+        setLengthUnitProvider(lengthUnitProvider);
+    }
+
+    public void setLengthUnitProvider(LengthUnitProvider lengthUnitProvider){
+        this.lengthUnitProvider = lengthUnitProvider;
+
+        LengthUnit convertedMin = lengthUnitProvider.boxBaseValueToTarget(MIN_RADIUS);
+        minRadius = (LengthUnit) convertedMin.valueOf(Math.round(convertedMin.getValue()));
+
+        LengthUnit convertedMax = lengthUnitProvider.boxBaseValueToTarget(MAX_RADIUS);
+        maxRadius = (LengthUnit) convertedMax.valueOf(Math.round(convertedMax.getValue()));
+
+        notifyDataSetChanged();
+    }
+
     @Override
     public WearableListView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         return new ViewHolder(LayoutInflater.from(parent.getContext())
@@ -35,13 +58,13 @@ public class FollowMeRadiusAdapter extends WearableListView.Adapter {
 
     @Override
     public void onBindViewHolder(WearableListView.ViewHolder holder, int position) {
-        final Integer radius = position + MIN_RADIUS;
-        ((ViewHolder)holder).radiusView.setText(radius.toString() + " m");
+        final LengthUnit radius = (LengthUnit) minRadius.valueOf(minRadius.getValue() + position);
+        ((ViewHolder)holder).radiusView.setText(radius.toString());
         holder.itemView.setTag(radius);
     }
 
     @Override
     public int getItemCount() {
-        return MAX_RADIUS - MIN_RADIUS + 1;
+        return (int) (Operation.sub(maxRadius, minRadius).getValue()  + 1);
     }
 }

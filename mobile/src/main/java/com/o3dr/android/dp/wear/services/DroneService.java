@@ -20,6 +20,7 @@ import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.TowerListener;
 import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
@@ -291,7 +292,11 @@ public class DroneService extends Service implements TowerListener, DroneListene
     }
 
     private byte[] getDroneAttribute(String attributeType) {
-        final Parcelable attribute = drone.getAttribute(attributeType);
+        Parcelable attribute = drone.getAttribute(attributeType);
+        if(attribute instanceof FollowState){
+            attribute = new WearFollowState((FollowState) attribute);
+        }
+
         return attribute == null ? null : ParcelableUtils.marshall(attribute);
     }
 

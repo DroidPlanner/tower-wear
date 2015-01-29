@@ -9,6 +9,7 @@ import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.fragment.FollowMeRadiusFragment;
 import com.o3dr.android.dp.wear.fragment.FollowMeToggleActionFragment;
 import com.o3dr.android.dp.wear.fragment.FollowMeTypesFragment;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
@@ -18,15 +19,15 @@ import com.o3dr.services.android.lib.gcs.follow.FollowType;
  */
 public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
-    private FollowState vehicleFollowState;
+    private WearFollowState followState;
     private GuidedState guidedState;
 
     public ActionPagerAdapter(FragmentManager fm) {
         super(fm);
     }
 
-    public void updateFollowState(FollowState vehicleFollowState) {
-        this.vehicleFollowState = vehicleFollowState;
+    public void updateFollowState(WearFollowState vehicleFollowState) {
+        this.followState = vehicleFollowState;
         notifyDataSetChanged();
     }
 
@@ -66,7 +67,7 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
         }
 
         if (fragment != null) {
-            args.putParcelable(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE, vehicleFollowState);
+            args.putParcelable(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE, followState);
             args.putParcelable(WearUIActivity.EXTRA_GUIDED_STATE, guidedState);
             fragment.setArguments(args);
         }
@@ -76,13 +77,13 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public int getRowCount() {
-        return vehicleFollowState ==  null ? 0 : 1;
+        return followState ==  null ? 0 : 1;
     }
 
     @Override
     public int getColumnCount(int row) {
-        if(vehicleFollowState != null){
-            FollowType followType = vehicleFollowState.getMode();
+        if(followState != null){
+            FollowType followType = followState.getMode();
             if(followType.hasParam(FollowType.EXTRA_FOLLOW_RADIUS))
                 return 4;
             else

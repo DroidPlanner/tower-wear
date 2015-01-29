@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
@@ -22,7 +23,7 @@ import com.o3dr.services.android.lib.gcs.follow.FollowState;
 public abstract class BaseActionFragment extends Fragment implements View.OnClickListener {
 
     private State vehicleState;
-    private FollowState vehicleFollowState;
+    private WearFollowState vehicleFollowState;
     private GuidedState guidedState;
 
     private Vibrator vibrator;
@@ -70,7 +71,7 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
         return vehicleState;
     }
 
-    protected FollowState getVehicleFollowState(){
+    protected WearFollowState getVehicleFollowState(){
         return vehicleFollowState;
     }
 

@@ -9,6 +9,7 @@
     <string name="disarm">Disarm</string>
     <string name="flight_modes">Flight modes</string>
     <string name="open_app">Open app</string>
+    <string name="label_follow_me">Follow me</string>
     <string name="preferences">Preferences on phone</string>
     <string name="label_follow_me_types">Follow me types</string>
 

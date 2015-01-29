@@ -1,6 +1,7 @@
 package com.o3dr.android.dp.wear.activities;
 
 import android.app.Activity;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 
@@ -27,17 +29,16 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
     private final Handler handler = new Handler();
 
     private GoogleApiClientManager apiClientMgr;
+    protected AppPreferences appPrefs;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
 
-        apiClientMgr = new GoogleApiClientManager(getApplicationContext(), handler, Wearable.API);
-    }
+        final Context context = getApplicationContext();
+        apiClientMgr = new GoogleApiClientManager(context, handler, Wearable.API);
+        appPrefs = new AppPreferences(context);
 
-    @Override
-    public void onStart(){
-        super.onStart();
         apiClientMgr.start();
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
             @Override
@@ -48,8 +49,8 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
     }
 
     @Override
-    public void onStop(){
-        super.onStop();
+    public void onDestroy(){
+        super.onDestroy();
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
             @Override
             protected void doRun() {

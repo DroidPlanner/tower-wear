@@ -18,10 +18,9 @@ import com.o3dr.android.client.Drone;
 import com.o3dr.android.client.apis.gcs.FollowApi;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.TowerListener;
-import com.o3dr.android.dp.wear.fragments.SettingsFragment;
+import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
 import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
-import com.o3dr.android.dp.wear.utils.AppPreferences;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
@@ -46,13 +45,13 @@ public class DroneService extends Service implements TowerListener, DroneListene
     static final String EXTRA_ACTION_DATA = "extra_action_data";
     public static final String EXTRA_CONNECTION_PARAMETER = "extra_connection_parameter";
 
-    private final static IntentFilter intentFilter = new IntentFilter(SettingsFragment.ACTION_PREFERENCES_UPDATED);
+    private final static IntentFilter intentFilter = new IntentFilter(WearUtils.ACTION_PREFERENCES_UPDATED);
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             switch(intent.getAction()){
-                case SettingsFragment.ACTION_PREFERENCES_UPDATED:
+                case WearUtils.ACTION_PREFERENCES_UPDATED:
                     updateAppPreferences();
                     break;
             }

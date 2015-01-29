@@ -29,8 +29,8 @@ public class FollowMeRadiusAdapter extends WearableListView.Adapter {
 
     @Override
     public WearableListView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.wear_list_item_default,
-                parent, false));
+        return new ViewHolder(LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.wear_list_item_default, parent, false));
     }
 
     @Override

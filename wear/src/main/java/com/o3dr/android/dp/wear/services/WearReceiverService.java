@@ -7,8 +7,10 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Parcelable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.activity.ConfirmationActivity;
 import android.util.Log;
 
@@ -22,12 +24,16 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.ContextStreamActivity;
+import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
+import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
+import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.State;
+import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
@@ -46,6 +52,18 @@ public class WearReceiverService extends WearRelayService {
 
     public static final String EXTRA_EVENT_DATA = "extra_event_data";
     public static final String EXTRA_ACTION_DATA = "extra_action_data";
+
+    private AppPreferences appPrefs;
+    private LocalBroadcastManager broadcastManager;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        final Context context = getApplicationContext();
+        appPrefs = new AppPreferences(context);
+        broadcastManager = LocalBroadcastManager.getInstance(context);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -112,7 +130,7 @@ public class WearReceiverService extends WearRelayService {
         dataEvents.release();
     }
 
-    private void handleDataItem(DataItem dataItem, int eventType){
+    private void handleDataItem(DataItem dataItem, int eventType) {
         final Uri dataUri = dataItem.getUri();
         final String dataPath = dataUri.getPath();
 
@@ -130,7 +148,60 @@ public class WearReceiverService extends WearRelayService {
                     }
                     break;
             }
+        } else {
+            switch (dataPath) {
+                case WearUtils.PREF_IS_HDOP_ENABLED: {
+                    boolean enabled = AppPreferences.DEFAULT_IS_GPS_HDOP_ENABLED;
+                    if (eventType != DataEvent.TYPE_DELETED) {
+                        byte[] eventData = dataItem.getData();
+                        enabled = eventData[0] == (byte) 1;
+                    }
+                    appPrefs.setGpsHdopEnabled(enabled);
+                    notifyPreferenceUpdated(appPrefs.getGpsHdopPrefKeyId());
+                    break;
+                }
+
+                case WearUtils.PREF_NOTIFICATION_PERMANENT: {
+                    boolean enabled = AppPreferences.DEFAULT_IS_NOTIFICATION_PERMANENT;
+                    if (eventType != DataEvent.TYPE_DELETED) {
+                        byte[] eventData = dataItem.getData();
+                        enabled = eventData[0] == (byte) 1;
+                    }
+                    appPrefs.setNotificationPermanent(enabled);
+                    notifyPreferenceUpdated(appPrefs.getPermanentNotificationKeyId());
+
+                    updateContextStreamNotification();
+                    break;
+                }
+
+                case WearUtils.PREF_SCREEN_STAYS_ON: {
+                    boolean enabled = AppPreferences.DEFAULT_IS_SCREEN_BRIGHT;
+                    if (eventType != DataEvent.TYPE_DELETED) {
+                        byte[] eventData = dataItem.getData();
+                        enabled = eventData[0] == (byte) 1;
+                    }
+                    appPrefs.setKeepScreenOn(enabled);
+                    notifyPreferenceUpdated(appPrefs.getKeepScreenOnPrefId());
+                    break;
+                }
+
+                case WearUtils.PREF_UNIT_SYSTEM: {
+                    int unitSystemType = AppPreferences.DEFAULT_UNIT_SYSTEM;
+                    if (eventType != DataEvent.TYPE_DELETED) {
+                        byte[] eventData = dataItem.getData();
+                        unitSystemType = eventData[0];
+                    }
+                    appPrefs.setUnitSystemType(unitSystemType);
+                    notifyPreferenceUpdated(appPrefs.getUnitSystemPrefId());
+                    break;
+                }
+            }
         }
+    }
+
+    private void notifyPreferenceUpdated(int prefKeyId) {
+        broadcastManager.sendBroadcast(new Intent(WearUtils.ACTION_PREFERENCES_UPDATED)
+                .putExtra(WearUtils.EXTRA_PREFERENCE_KEY_ID, prefKeyId));
     }
 
     @Override
@@ -142,7 +213,34 @@ public class WearReceiverService extends WearRelayService {
         }
     }
 
-    private void updateContextStreamNotification(){
+    private NotificationCompat.Action getFlightModesAction(Context context, VehicleMode vehicleMode) {
+        if (vehicleMode == null)
+            vehicleMode = VehicleMode.UNKNOWN;
+
+        final Intent flightModesIntent = new Intent(context, FlightModesSelectionActivity.class)
+                .setAction(AttributeEvent.STATE_VEHICLE_MODE)
+                .putExtra(EXTRA_EVENT_DATA, (Parcelable) vehicleMode);
+        final PendingIntent flightModesPI = PendingIntent.getActivity(context, 0, flightModesIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        final NotificationCompat.Action flightModeAction = new NotificationCompat.Action(R.drawable
+                .ic_flight_white_48dp, vehicleMode.getLabel(), flightModesPI);
+
+        return flightModeAction;
+    }
+
+    private NotificationCompat.Action getFollowMeActions(Context context, State vehicleState) {
+        final Intent openWearAppIntent = new Intent(context, WearUIActivity.class)
+                .setAction(AttributeType.STATE)
+                .putExtra(EXTRA_EVENT_DATA, vehicleState);
+        final PendingIntent openWearAppPI = PendingIntent.getActivity(context, 0, openWearAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+        final NotificationCompat.Action openWearAppAction = new NotificationCompat.Action(R.drawable.ic_follow,
+                getText(R.string.label_follow_me), openWearAppPI);
+
+        return openWearAppAction;
+    }
+
+    private void updateContextStreamNotification() {
         final String dataPath = WearUtils.VEHICLE_DATA_PREFIX + AttributeType.STATE;
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
             @Override
@@ -154,7 +252,7 @@ public class WearReceiverService extends WearRelayService {
                             @Override
                             public void onResult(DataItemBuffer dataItems) {
                                 final int dataCount = dataItems.getCount();
-                                for(int i = 0; i < dataCount; i++){
+                                for (int i = 0; i < dataCount; i++) {
                                     final DataItem dataItem = dataItems.get(i);
                                     handleDataItem(dataItem, DataEvent.TYPE_CHANGED);
                                 }
@@ -188,26 +286,58 @@ public class WearReceiverService extends WearRelayService {
 
         //Flight action cards
         final boolean isConnected = vehicleState != null && vehicleState.isConnected();
+        final boolean onGoing = isConnected && appPrefs.isNotificationPermanent();
         int notificationPriority = isConnected ? NotificationCompat.PRIORITY_MAX : NotificationCompat.PRIORITY_DEFAULT;
 
-        //Open full screen app
-        final Intent openWearAppIntent = new Intent(context, WearUIActivity.class)
-                .setAction(AttributeType.STATE)
-                .putExtra(EXTRA_EVENT_DATA, vehicleState);
-        final PendingIntent openWearAppPI = PendingIntent.getActivity(context, 0, openWearAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action openWearAppAction = new NotificationCompat.Action(R.drawable.ic_fullscreen_white_48dp,
-                getText(R.string.open_app), openWearAppPI);
+        if (isConnected) {
+            VehicleMode vehicleMode = vehicleState.getVehicleMode();
+            final boolean isCopter = vehicleMode == null || vehicleMode.getDroneType() == Type.TYPE_COPTER;
 
-        actionsList.add(openWearAppAction);
+            if (isCopter) {
+                if (vehicleState.isFlying()) {
+                    actionsList.add(getFollowMeActions(context, vehicleState));
+                    actionsList.add(getFlightModesAction(context, vehicleMode));
+                } else if (vehicleState.isArmed()) {
+                    final Intent takeOffIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
+                            .ACTION_TAKE_OFF);
+                    final PendingIntent takeOffPI = PendingIntent.getService(context, 0, takeOffIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT);
+                    final NotificationCompat.Action takeOffAction = new NotificationCompat.Action(R.drawable
+                            .ic_file_upload_white_48dp, getText(R.string.take_off), takeOffPI);
+
+                    actionsList.add(takeOffAction);
+
+                    final Intent disarmIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
+                            .ACTION_DISARM);
+                    final PendingIntent disarmPI = PendingIntent.getService(context, 0, disarmIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT);
+                    final NotificationCompat.Action disarmAction = new NotificationCompat.Action(R.drawable.ic_lock_open_white_48dp,
+                            getText(R.string.disarm), disarmPI);
+
+                    actionsList.add(disarmAction);
+                } else {
+                    final Intent armIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils.ACTION_ARM);
+                    final PendingIntent armPI = PendingIntent.getService(context, 0, armIntent,
+                            PendingIntent.FLAG_UPDATE_CURRENT);
+                    final NotificationCompat.Action armAction = new NotificationCompat.Action(R.drawable.ic_lock_white_48dp,
+                            getText(R.string.arm), armPI);
+
+                    actionsList.add(armAction);
+                }
+            } else {
+                //Most likely plane.
+                actionsList.add(getFollowMeActions(context, vehicleState));
+                actionsList.add(getFlightModesAction(context, vehicleMode));
+            }
+        }
 
         //Open phone app card.
         final Intent settingsIntent = new Intent(context, WearReceiverService.class)
                 .setAction(WearUtils.ACTION_OPEN_PHONE_APP);
         final PendingIntent settingsPI = PendingIntent.getService(context, 0, settingsIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
-        final NotificationCompat.Action settingsAction = new NotificationCompat.Action(R.drawable
-                .ic_settings_white_48dp, getText(R.string.preferences), settingsPI);
+        final NotificationCompat.Action settingsAction = new NotificationCompat
+                .Action(R.drawable.ic_settings_white_48dp, getText(R.string.preferences), settingsPI);
 
         actionsList.add(settingsAction);
 
@@ -219,7 +349,7 @@ public class WearReceiverService extends WearRelayService {
                 .setOnlyAlertOnce(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(notificationPriority)
-                .setOngoing(isConnected)
+                .setOngoing(onGoing)
                 .extend(extender)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .build();
@@ -234,7 +364,7 @@ public class WearReceiverService extends WearRelayService {
     }
 
     @Override
-    public void onPeerDisconnected(Node peer){
+    public void onPeerDisconnected(Node peer) {
         //Cancel the notification
         cancelNotification();
     }

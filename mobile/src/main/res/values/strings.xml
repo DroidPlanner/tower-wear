@@ -4,7 +4,7 @@
     <string name="version">Version</string>
     <string name="usage_statistics">Usage Statistics</string>
     <string name="pref_usage_statistics_title">Send usage statistics</string>
-    <string name="pref_usage_statistics_summary">Help improve DroidPlanner by sending usage statistics.</string>
+    <string name="pref_usage_statistics_summary">Help improve by sending usage statistics.</string>
     <string name="label_user_interface">User Interface</string>
     <string name="unit_system_entry_auto">Auto</string>
     <string name="unit_system_entry_metric">Metric System</string>

@@ -25,6 +25,9 @@ public class WearUtils {
 
     public static final String PACKAGE_NAME = "com.o3dr.android.dp.wear";
 
+    public static final String ACTION_PREFERENCES_UPDATED = PACKAGE_NAME + ".action.PREFERENCES_UPDATED";
+    public static final String EXTRA_PREFERENCE_KEY_ID = "extra_preference_key_id";
+
     private static final String ROOT_PATH = "/dp/wear";
 
     public static final String VEHICLE_DATA_PREFIX = ROOT_PATH + "/vehicle_data/";

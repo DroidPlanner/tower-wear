@@ -11,8 +11,8 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.o3dr.android.dp.wear.R;
+import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
-import com.o3dr.android.dp.wear.utils.AppPreferences;
 
 /**
  * Created by fhuya on 12/27/14.
@@ -20,9 +20,6 @@ import com.o3dr.android.dp.wear.utils.AppPreferences;
 public class SettingsFragment extends PreferenceFragment {
 
     private static final String TAG = SettingsFragment.class.getSimpleName();
-
-    public static final String ACTION_PREFERENCES_UPDATED = WearUtils.PACKAGE_NAME + ".action.PREFERENCES_UPDATED";
-    public static final String EXTRA_PREFERENCE_KEY = "extra_preference_key";
 
     private AppPreferences appPrefs;
     private LocalBroadcastManager broadcastManager;
@@ -51,8 +48,8 @@ public class SettingsFragment extends PreferenceFragment {
             pref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
                 @Override
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    broadcastManager.sendBroadcast(new Intent(ACTION_PREFERENCES_UPDATED)
-                            .putExtra(EXTRA_PREFERENCE_KEY, prefKeyId));
+                    broadcastManager.sendBroadcast(new Intent(WearUtils.ACTION_PREFERENCES_UPDATED)
+                            .putExtra(WearUtils.EXTRA_PREFERENCE_KEY_ID, prefKeyId));
                     return true;
                 }
             });
@@ -69,8 +66,8 @@ public class SettingsFragment extends PreferenceFragment {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
                     int unitSystem = Integer.parseInt((String) newValue);
                     updateUnitSystemSummary(preference, unitSystem);
-                    broadcastManager.sendBroadcast(new Intent(ACTION_PREFERENCES_UPDATED)
-                            .putExtra(EXTRA_PREFERENCE_KEY, R.string.pref_unit_system_key));
+                    broadcastManager.sendBroadcast(new Intent(WearUtils.ACTION_PREFERENCES_UPDATED)
+                            .putExtra(WearUtils.EXTRA_PREFERENCE_KEY_ID, R.string.pref_unit_system_key));
                     return true;
                 }
             });

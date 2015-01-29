@@ -1,14 +1,20 @@
 package com.o3dr.android.dp.wear.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.lib.utils.SpannableUtils;
+import com.o3dr.android.dp.wear.lib.utils.WearUtils;
+import com.o3dr.android.dp.wear.lib.utils.unit.UnitManager;
 import com.o3dr.android.dp.wear.services.WearReceiverService;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.Battery;
@@ -21,6 +27,8 @@ import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.util.MathUtils;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
+import org.beyene.sius.unit.length.LengthUnit;
+
 import java.util.Locale;
 
 /**
@@ -29,6 +37,33 @@ import java.util.Locale;
 public class ContextStreamActivity extends BaseActivity {
 
     private final static String TAG = ContextStreamActivity.class.getSimpleName();
+
+    private static final IntentFilter intentFilter = new IntentFilter(WearUtils.ACTION_PREFERENCES_UPDATED);
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch(intent.getAction()){
+                case WearUtils.ACTION_PREFERENCES_UPDATED:
+                    final int prefKeyId = intent.getIntExtra(WearUtils.EXTRA_PREFERENCE_KEY_ID, -1);
+                    switch(prefKeyId){
+                        case R.string.pref_keep_screen_bright_key:
+                            if(activityLayout != null)
+                                activityLayout.setKeepScreenOn(appPrefs.keepScreenBright());
+                            break;
+
+                        case R.string.pref_ui_gps_hdop_key:
+                            updateGpsStatus();
+                            break;
+
+                        case R.string.pref_unit_system_key:
+                            updateHomeStatus();
+                            break;
+                    }
+                    break;
+            }
+        }
+    };
 
     private View activityLayout;
     private TextView signalStatus;
@@ -64,6 +99,14 @@ public class ContextStreamActivity extends BaseActivity {
         reloadVehicleData(AttributeType.BATTERY);
         reloadVehicleData(AttributeType.SIGNAL);
         reloadVehicleData(AttributeType.HOME);
+
+        LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(broadcastReceiver, intentFilter);
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -90,7 +133,7 @@ public class ContextStreamActivity extends BaseActivity {
             case AttributeType.STATE:
                 State vehicleState = eventData == null ? null : ParcelableUtils.unmarshall(eventData, State.CREATOR);
                 final boolean isConnected = vehicleState != null && vehicleState.isConnected();
-                activityLayout.setKeepScreenOn(isConnected);
+                activityLayout.setKeepScreenOn(isConnected && appPrefs.keepScreenBright());
 
                 final CharSequence connectionLabel;
                 if (isConnected) {
@@ -130,29 +173,7 @@ public class ContextStreamActivity extends BaseActivity {
 
             case AttributeType.GPS:
                 droneGps = eventData == null ? null : ParcelableUtils.unmarshall(eventData, Gps.CREATOR);
-                if (droneGps == null) {
-                    gpsStatus.setText(R.string.empty_content);
-                    gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_off_grey600_24dp, 0, 0, 0);
-                } else {
-                    updateHomeStatus();
-
-                    switch (droneGps.getFixStatus()) {
-                        case Gps.NO_FIX:
-                            gpsStatus.setText(R.string.empty_content);
-                            gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_off_grey600_24dp, 0, 0, 0);
-                            break;
-
-                        case Gps.LOCK_2D:
-                            gpsStatus.setText(droneGps.getFixStatus());
-                            gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_not_fixed_grey600_24dp, 0, 0, 0);
-                            break;
-
-                        case Gps.LOCK_3D:
-                            gpsStatus.setText(droneGps.getFixStatus());
-                            gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_fixed_grey600_24dp, 0, 0, 0);
-                            break;
-                    }
-                }
+                updateGpsStatus();
                 break;
 
             case AttributeType.BATTERY:
@@ -182,6 +203,37 @@ public class ContextStreamActivity extends BaseActivity {
         }
     }
 
+    private void updateGpsStatus(){
+        if (droneGps == null) {
+            gpsStatus.setText(R.string.empty_content);
+            gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_off_grey600_24dp, 0, 0, 0);
+        } else {
+            updateHomeStatus();
+
+            final boolean isHdopEnabled = appPrefs.isGpsHdopEnabled();
+            switch (droneGps.getFixStatus()) {
+                case Gps.NO_FIX:
+                    gpsStatus.setText(R.string.empty_content);
+                    gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_off_grey600_24dp, 0, 0, 0);
+                    break;
+
+                case Gps.LOCK_2D:
+                    gpsStatus.setText(isHdopEnabled
+                            ? String.valueOf(droneGps.getGpsEph())
+                            : droneGps.getFixStatus());
+                    gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_not_fixed_grey600_24dp, 0, 0, 0);
+                    break;
+
+                case Gps.LOCK_3D:
+                    gpsStatus.setText(isHdopEnabled
+                            ? String.valueOf(droneGps.getGpsEph())
+                            : droneGps.getFixStatus());
+                    gpsStatus.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_gps_fixed_grey600_24dp, 0, 0, 0);
+                    break;
+            }
+        }
+    }
+
     private void updateHomeStatus() {
         if (droneGps == null || droneHome == null)
             return;
@@ -190,8 +242,8 @@ public class ContextStreamActivity extends BaseActivity {
             return;
 
         double distanceToHome = MathUtils.getDistance(droneHome.getCoordinate(), droneGps.getPosition());
-        homeStatus.setText(String.format(Locale.US, "%2.1f m", distanceToHome));
+        LengthUnit convertedDistance = UnitManager.getUnitSystem(appPrefs.getUnitSystemType())
+                .getLengthUnitProvider().boxBaseValueToTarget(distanceToHome);
+        homeStatus.setText(convertedDistance.toString());
     }
-
-
 }

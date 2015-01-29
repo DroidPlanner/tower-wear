@@ -9,6 +9,8 @@ import android.widget.TextView;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 
+import java.util.List;
+
 /**
 * Created by fhuya on 1/3/15.
 */
@@ -24,21 +26,23 @@ public class FollowTypesAdapter extends WearableListView.Adapter {
         }
     }
 
+    private final List<FollowType> followTypes = FollowType.getFollowTypes(false);
+
     @Override
     public WearableListView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.wear_list_item_default,
-                parent, false));
+        return new ViewHolder(LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.wear_list_item_default, parent, false));
     }
 
     @Override
     public void onBindViewHolder(WearableListView.ViewHolder holder, int position) {
-        final FollowType followType = FollowType.values()[position];
+        final FollowType followType = followTypes.get(position);
         ((ViewHolder)holder).followTypeView.setText(followType.getTypeLabel());
         holder.itemView.setTag(followType);
     }
 
     @Override
     public int getItemCount() {
-        return FollowType.values().length;
+        return followTypes.size();
     }
 }

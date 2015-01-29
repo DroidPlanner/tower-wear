@@ -278,7 +278,7 @@ public class WearReceiverService extends WearRelayService {
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
         final NotificationCompat.WearableExtender extender = new NotificationCompat.WearableExtender()
-                .setBackground(BitmapFactory.decodeResource(res, R.drawable.wear_notification_bg))
+                .setBackground(BitmapFactory.decodeResource(res, R.drawable.wear_stream_notification_bg))
                 .setDisplayIntent(displayPI)
                 .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE);
 
@@ -346,7 +346,6 @@ public class WearReceiverService extends WearRelayService {
         Notification contextStream = new NotificationCompat.Builder(context)
                 .setContentTitle(getText(R.string.app_name))
                 .setContentText("")
-                .setOnlyAlertOnce(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(notificationPriority)
                 .setOngoing(onGoing)

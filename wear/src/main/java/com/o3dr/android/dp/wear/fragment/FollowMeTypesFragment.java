@@ -6,6 +6,7 @@ import android.content.Intent;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.activities.FollowMeTypesSelector;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 
 /**
@@ -26,7 +27,7 @@ public class FollowMeTypesFragment extends BaseActionFragment {
     @Override
     protected void onActionClicked() {
         final Context context = getContext();
-        final FollowState followState = getVehicleFollowState();
+        final WearFollowState followState = getVehicleFollowState();
         startActivity(new Intent(context, FollowMeTypesSelector.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 .putExtra(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE, followState));

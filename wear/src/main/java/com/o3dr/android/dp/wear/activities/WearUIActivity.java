@@ -18,7 +18,6 @@ import com.o3dr.android.dp.wear.widgets.indicators.PageIndicator;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.State;
-import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
 /**
@@ -35,12 +34,12 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch(intent.getAction()){
+            switch (intent.getAction()) {
                 case WearUtils.ACTION_PREFERENCES_UPDATED:
                     int prefKeyId = intent.getIntExtra(WearUtils.EXTRA_PREFERENCE_KEY_ID, -1);
-                    switch(prefKeyId){
+                    switch (prefKeyId) {
                         case R.string.pref_keep_screen_bright_key:
-                            if(gridView != null)
+                            if (gridView != null)
                                 gridView.setKeepScreenOn(appPrefs.keepScreenBright());
                             break;
                     }
@@ -55,6 +54,10 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
 
     private GridViewPager gridView;
     private ActionPagerAdapter actionPagerAdapter;
+
+    private WearFollowState followState;
+    private GuidedState guidedState;
+    private State vehicleState;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +79,18 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
         reloadVehicleData(AttributeType.GUIDED_STATE);
     }
 
+    public WearFollowState getFollowState() {
+        return followState;
+    }
+
+    public GuidedState getGuidedState() {
+        return guidedState;
+    }
+
+    public State getVehicleState() {
+        return vehicleState;
+    }
+
     @Override
     public void onStart() {
         super.onStart();
@@ -83,7 +98,7 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
     }
 
     @Override
-    public void onStop(){
+    public void onStop() {
         super.onStop();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(broadcastReceiver);
     }
@@ -92,7 +107,7 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
     protected void onVehicleDataUpdated(String dataType, byte[] eventData) {
         switch (dataType) {
             case AttributeType.STATE:
-                State vehicleState = eventData == null ? null : ParcelableUtils.unmarshall(eventData, State.CREATOR);
+                vehicleState = eventData == null ? null : ParcelableUtils.unmarshall(eventData, State.CREATOR);
                 final boolean isFollowMeReady = vehicleState != null && vehicleState.isConnected()
                         && vehicleState.isArmed() && vehicleState.isFlying();
                 if (!isFollowMeReady)
@@ -100,18 +115,19 @@ public class WearUIActivity extends BaseActivity implements GridViewPager.OnPage
                 else {
                     gridView.setKeepScreenOn(appPrefs.keepScreenBright());
                 }
+                broadcastManager.sendBroadcast(new Intent(dataType).putExtra(EXTRA_VEHICLE_STATE, vehicleState));
                 break;
 
             case AttributeType.FOLLOW_STATE:
-                WearFollowState vehicleFollowState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
+                followState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
                         WearFollowState.CREATOR);
-                actionPagerAdapter.updateFollowState(vehicleFollowState);
+                broadcastManager.sendBroadcast(new Intent(dataType).putExtra(EXTRA_VEHICLE_FOLLOW_STATE, followState));
                 break;
 
             case AttributeType.GUIDED_STATE:
-                GuidedState guidedState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
+                guidedState = eventData == null ? null : ParcelableUtils.unmarshall(eventData,
                         GuidedState.CREATOR);
-                actionPagerAdapter.updateGuidedState(guidedState);
+                broadcastManager.sendBroadcast(new Intent(dataType).putExtra(EXTRA_GUIDED_STATE, guidedState));
                 break;
         }
     }

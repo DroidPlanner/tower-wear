@@ -1,9 +1,14 @@
 package com.o3dr.android.dp.wear.fragment;
 
+import android.app.Activity;
 import android.app.Fragment;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Vibrator;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.wearable.view.CircledImageView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +18,7 @@ import android.widget.TextView;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
+import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.property.GuidedState;
 import com.o3dr.services.android.lib.drone.property.State;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
@@ -22,24 +28,51 @@ import com.o3dr.services.android.lib.gcs.follow.FollowState;
  */
 public abstract class BaseActionFragment extends Fragment implements View.OnClickListener {
 
-    private State vehicleState;
-    private WearFollowState vehicleFollowState;
-    private GuidedState guidedState;
+    private final static IntentFilter intentFilter = new IntentFilter();
+    static {
+        intentFilter.addAction(AttributeType.STATE);
+        intentFilter.addAction(AttributeType.GUIDED_STATE);
+        intentFilter.addAction(AttributeType.FOLLOW_STATE);
+    }
+
+    private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch(intent.getAction()){
+                case AttributeType.FOLLOW_STATE:
+                case AttributeType.GUIDED_STATE:
+                    updateLayout();
+                    break;
+            }
+        }
+    };
 
     private Vibrator vibrator;
+    private WearUIActivity parentActivity;
+
+    private CircledImageView faveImage;
+    private TextView faveLabel;
+
+    @Override
+    public void onAttach(Activity activity){
+        super.onAttach(activity);
+        if(!(activity instanceof WearUIActivity)) {
+            throw new IllegalStateException("Parent activity must be an instance of " + WearUIActivity.class.getName());
+        }
+
+        parentActivity = (WearUIActivity) activity;
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        parentActivity = null;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-
         vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-
-        Bundle arguments = getArguments();
-        if(arguments != null) {
-            vehicleState = arguments.getParcelable(WearUIActivity.EXTRA_VEHICLE_STATE);
-            vehicleFollowState = arguments.getParcelable(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE);
-            guidedState = arguments.getParcelable(WearUIActivity.EXTRA_GUIDED_STATE);
-        }
     }
 
     @Override
@@ -51,32 +84,45 @@ public abstract class BaseActionFragment extends Fragment implements View.OnClic
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        final CircledImageView faveImage = (CircledImageView) view.findViewById(R.id.listing_action_image);
+        faveImage = (CircledImageView) view.findViewById(R.id.listing_action_image);
+        faveLabel = (TextView) view.findViewById(R.id.listing_action_label);
+        updateLayout();
+
+        LocalBroadcastManager.getInstance(parentActivity.getApplicationContext()).registerReceiver(broadcastReceiver,
+                intentFilter);
+    }
+
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        LocalBroadcastManager.getInstance(parentActivity.getApplicationContext()).unregisterReceiver(broadcastReceiver);
+    }
+
+    private void updateLayout(){
         if (faveImage != null) {
             faveImage.setImageResource(getActionImageResource());
             faveImage.setOnClickListener(this);
         }
 
-        final TextView faveLabel = (TextView) view.findViewById(R.id.listing_action_label);
         if (faveLabel != null) {
             faveLabel.setText(getActionLabel());
         }
     }
 
     protected Context getContext(){
-        return getActivity().getApplicationContext();
+        return parentActivity.getApplicationContext();
     }
 
     protected State getVehicleState(){
-        return vehicleState;
+        return parentActivity.getVehicleState();
     }
 
     protected WearFollowState getVehicleFollowState(){
-        return vehicleFollowState;
+        return parentActivity.getFollowState();
     }
 
     protected GuidedState getVehicleGuidedState(){
-        return guidedState;
+        return parentActivity.getGuidedState();
     }
 
     protected abstract int getActionImageResource();

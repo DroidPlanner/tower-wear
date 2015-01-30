@@ -5,6 +5,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.android.gms.common.api.ResultCallback;
@@ -30,6 +31,7 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
 
     private GoogleApiClientManager apiClientMgr;
     protected AppPreferences appPrefs;
+    protected LocalBroadcastManager broadcastManager;
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -38,6 +40,7 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
         final Context context = getApplicationContext();
         apiClientMgr = new GoogleApiClientManager(context, handler, Wearable.API);
         appPrefs = new AppPreferences(context);
+        broadcastManager = LocalBroadcastManager.getInstance(context);
 
         apiClientMgr.start();
         apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {

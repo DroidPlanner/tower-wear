@@ -28,6 +28,7 @@ import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
+import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -56,6 +57,40 @@ public class WearReceiverService extends WearRelayService {
     private AppPreferences appPrefs;
     private LocalBroadcastManager broadcastManager;
 
+    /*
+    Track the state of the vehicle to figure out if it's worth notifying the user.
+     */
+    private boolean isVehicleConnected;
+    private boolean isVehicleArmed;
+    private boolean isVehicleFlying;
+    private VehicleMode lastVehicleMode = VehicleMode.UNKNOWN;
+
+    private void resetStateTracker(){
+        isVehicleConnected = false;
+        isVehicleArmed = false;
+        isVehicleFlying = false;
+        lastVehicleMode = VehicleMode.UNKNOWN;
+    }
+
+    private void updateState(State vehicleState){
+        this.isVehicleConnected = vehicleState.isConnected();
+        this.isVehicleArmed = vehicleState.isArmed();
+        this.isVehicleFlying = vehicleState.isFlying();
+        this.lastVehicleMode = vehicleState.getVehicleMode();
+    }
+
+    private boolean shouldNotifyUser(State vehicleState){
+        boolean shouldNotify = isVehicleConnected != vehicleState.isConnected()
+                || isVehicleArmed != vehicleState.isArmed()
+                || isVehicleFlying != vehicleState.isFlying()
+                || lastVehicleMode != vehicleState.getVehicleMode();
+
+        if(shouldNotify)
+            updateState(vehicleState);
+
+        return shouldNotify;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -63,6 +98,14 @@ public class WearReceiverService extends WearRelayService {
         final Context context = getApplicationContext();
         appPrefs = new AppPreferences(context);
         broadcastManager = LocalBroadcastManager.getInstance(context);
+
+        Log.d(TAG, "Created wear receiver service.");
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.d(TAG, "Destroyed wear receiver service.");
     }
 
     @Override
@@ -280,7 +323,7 @@ public class WearReceiverService extends WearRelayService {
         final NotificationCompat.WearableExtender extender = new NotificationCompat.WearableExtender()
                 .setBackground(BitmapFactory.decodeResource(res, R.drawable.wear_stream_notification_bg))
                 .setDisplayIntent(displayPI)
-                .setCustomSizePreset(Notification.WearableExtender.SIZE_LARGE);
+                .setCustomContentHeight((int) getResources().getDimension(R.dimen.stream_notification_height));
 
         final List<NotificationCompat.Action> actionsList = new ArrayList<>();
 
@@ -296,7 +339,6 @@ public class WearReceiverService extends WearRelayService {
             if (isCopter) {
                 if (vehicleState.isFlying()) {
                     actionsList.add(getFollowMeActions(context, vehicleState));
-                    actionsList.add(getFlightModesAction(context, vehicleMode));
                 } else if (vehicleState.isArmed()) {
                     final Intent takeOffIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
                             .ACTION_TAKE_OFF);
@@ -327,8 +369,9 @@ public class WearReceiverService extends WearRelayService {
             } else {
                 //Most likely plane.
                 actionsList.add(getFollowMeActions(context, vehicleState));
-                actionsList.add(getFlightModesAction(context, vehicleMode));
             }
+
+            actionsList.add(getFlightModesAction(context, vehicleMode));
         }
 
         //Open phone app card.
@@ -346,6 +389,7 @@ public class WearReceiverService extends WearRelayService {
         Notification contextStream = new NotificationCompat.Builder(context)
                 .setContentTitle(getText(R.string.app_name))
                 .setContentText("")
+                .setOnlyAlertOnce(!shouldNotifyUser(vehicleState))
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(notificationPriority)
                 .setOngoing(onGoing)

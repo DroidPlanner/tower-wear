@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/context_stream_layout"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/stream_notification_height"
     android:layout_gravity="center"
     tools:deviceIds="wear"
     tools:context=".activities.ContextStreamActivity">
@@ -19,7 +19,7 @@
         android:textSize="@dimen/info_bar_text_size"
         style="?android:attr/buttonBarButtonStyle"
         android:text="@string/empty_content"
-        android:layout_alignParentTop="true"
+        android:layout_below="@+id/connection_status"
         android:layout_alignParentStart="true"/>
 
     <TextView
@@ -33,7 +33,7 @@
         android:textSize="@dimen/info_bar_text_size"
         android:layout_alignParentEnd="true"
         android:gravity="center_vertical"
-        android:layout_below="@+id/connection_status"
+        android:layout_alignParentTop="true"
         />
 
     <TextView
@@ -47,7 +47,7 @@
         android:textSize="@dimen/info_bar_text_size"
         android:drawablePadding="5dp"
         android:gravity="center_vertical"
-        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
         android:layout_below="@+id/connection_status"
         />
 
@@ -59,8 +59,9 @@
         android:textSize="@dimen/info_bar_text_size"
         android:layout_height="wrap_content"
         android:drawableStart="@drawable/ic_gps_off_grey600_24dp"
-        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:gravity="center_vertical"
         android:text="@string/empty_content"
         />
 
@@ -68,7 +69,6 @@
         android:id="@+id/connection_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="2dp"
         android:layout_centerHorizontal="true"
         android:gravity="center"
         tools:text="disconnected"

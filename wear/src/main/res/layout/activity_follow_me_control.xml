@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<android.support.wearable.view.BoxInsetLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,18 +9,25 @@
     tools:deviceIds="wear"
     tools:context=".activities.FollowMeActivity">
 
-    <android.support.wearable.view.GridViewPager
-        android:id="@+id/grid_view_pager"
+    <FrameLayout
+        app:layout_box="bottom"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"/>
+        >
 
-    <com.o3dr.android.dp.wear.widgets.indicators.CirclePageIndicator
-        android:id="@+id/horizontal_page_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="10dp"
-        app:centered="true"
-        android:orientation="horizontal"/>
-</FrameLayout>
+        <android.support.wearable.view.GridViewPager
+            android:id="@+id/grid_view_pager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"/>
+
+        <com.o3dr.android.dp.wear.widgets.indicators.CirclePageIndicator
+            android:id="@+id/horizontal_page_indicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_marginBottom="10dp"
+            app:centered="true"
+            android:orientation="horizontal"/>
+    </FrameLayout>
+</android.support.wearable.view.BoxInsetLayout>

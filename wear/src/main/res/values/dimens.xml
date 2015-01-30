@@ -9,4 +9,5 @@
     <dimen name="default_line_indicator_line_width">12dp</dimen>
     <dimen name="default_line_indicator_gap_width">4dp</dimen>
     <dimen name="default_line_indicator_stroke_width">1dp</dimen>
+    <dimen name="stream_notification_height">110dp</dimen>
 </resources>

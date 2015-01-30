@@ -19,21 +19,8 @@ import com.o3dr.services.android.lib.gcs.follow.FollowType;
  */
 public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
-    private WearFollowState followState;
-    private GuidedState guidedState;
-
     public ActionPagerAdapter(FragmentManager fm) {
         super(fm);
-    }
-
-    public void updateFollowState(WearFollowState vehicleFollowState) {
-        this.followState = vehicleFollowState;
-        notifyDataSetChanged();
-    }
-
-    public void updateGuidedState(GuidedState guidedState) {
-        this.guidedState = guidedState;
-        notifyDataSetChanged();
     }
 
     @Override
@@ -67,8 +54,6 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
         }
 
         if (fragment != null) {
-            args.putParcelable(WearUIActivity.EXTRA_VEHICLE_FOLLOW_STATE, followState);
-            args.putParcelable(WearUIActivity.EXTRA_GUIDED_STATE, guidedState);
             fragment.setArguments(args);
         }
 
@@ -77,19 +62,11 @@ public class ActionPagerAdapter extends FragmentGridPagerAdapter {
 
     @Override
     public int getRowCount() {
-        return followState ==  null ? 0 : 1;
+        return 1;
     }
 
     @Override
     public int getColumnCount(int row) {
-        if(followState != null){
-            FollowType followType = followState.getMode();
-            if(followType.hasParam(FollowType.EXTRA_FOLLOW_RADIUS))
-                return 4;
-            else
-                return 3;
-        }
-
         return 4;
     }
 }

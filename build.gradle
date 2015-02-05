@@ -9,6 +9,11 @@ buildscript {
     }
 }
 
+ext {
+    VERSION_CODE = 3
+    VERSION_NAME = "2.1"
+}
+
 def getMavenUsername(){
     return hasProperty('COM_O3DR_MAVEN_USERNAME') ? COM_O3DR_MAVEN_USERNAME : ''
 }

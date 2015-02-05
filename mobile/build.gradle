@@ -13,8 +13,8 @@ android {
         applicationId "com.o3dr.android.dp.wear"
         minSdkVersion 18
         targetSdkVersion 21
-        versionCode 2
-        versionName "2.0"
+        versionCode VERSION_CODE
+        versionName VERSION_NAME
     }
 
     signingConfigs {

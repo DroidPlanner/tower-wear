@@ -17,6 +17,21 @@ android {
         versionCode VERSION_CODE
         versionName VERSION_NAME
     }
+
+    signingConfigs {
+        release {
+            storeFile getAppKeystoreFile()
+            storePassword getAppKeystorePassword()
+            keyAlias getAppKey()
+            keyPassword getAppKeyPassword()
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
 }
 
 dependencies {

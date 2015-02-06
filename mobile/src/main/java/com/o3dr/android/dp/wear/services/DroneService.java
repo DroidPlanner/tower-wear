@@ -108,6 +108,8 @@ public class DroneService extends Service implements TowerListener, DroneListene
         apiClientMgr.stop();
 
         //Clean out the service manager, and drone instances.
+        Log.d(TAG, "Disconnecting from the control tower.");
+
         controlTower.unregisterDrone(drone);
         controlTower.disconnect();
 
@@ -165,6 +167,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
                             executeDroneAction(new Runnable() {
                                 @Override
                                 public void run() {
+                                    Log.d(TAG, "Connecting to the vehicle.");
                                     drone.connect(connParams);
                                 }
                             });
@@ -174,6 +177,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
                         executeDroneAction(new Runnable() {
                             @Override
                             public void run() {
+                                Log.d(TAG, "Disconnecting from the vehicle.");
                                 drone.disconnect();
                             }
                         });
@@ -301,9 +305,11 @@ public class DroneService extends Service implements TowerListener, DroneListene
     }
 
     private void executeDroneAction(final Runnable action) {
-        if (drone.isStarted())
+        if (drone.isStarted()) {
+            Log.d(TAG, "Running drone action.");
             action.run();
-        else {
+        }else {
+            Log.d(TAG, "Queuing drone action.");
             droneActionsQueue.offer(action);
         }
     }
@@ -331,7 +337,9 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     @Override
     public void onTowerDisconnected() {
-
+        controlTower.unregisterDrone(drone);
+        controlTower.disconnect();
+        stopSelf();
     }
 
     @Override
@@ -346,6 +354,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
             case AttributeEvent.STATE_CONNECTED:
             case AttributeEvent.STATE_DISCONNECTED:
                 //Update all of the vehicle's properties.
+                Log.d(TAG, "Received drone connection event: " + event);
                 updateAllVehicleAttributes();
                 break;
 

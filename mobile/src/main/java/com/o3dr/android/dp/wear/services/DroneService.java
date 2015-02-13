@@ -44,7 +44,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     private static final String TAG = DroneService.class.getSimpleName();
 
-    private static final long WATCHDOG_TIMEOUT = 30 * 1000; //ms
+    private static final long WATCHDOG_TIMEOUT = 5 * 1000; //ms
 
     static final String EXTRA_ACTION_DATA = "extra_action_data";
     public static final String EXTRA_CONNECTION_PARAMETER = "extra_connection_parameter";

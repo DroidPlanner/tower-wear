@@ -25,7 +25,7 @@ public class PreferencesActivity extends ActionBarActivity {
         public void onReceive(Context context, Intent intent) {
             switch(intent.getAction()){
                 case WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN:
-                    Toast.makeText(getApplicationContext(), "Wear app installed.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(getApplicationContext(), "Wear app loaded.", Toast.LENGTH_SHORT).show();
                     break;
             }
         }

@@ -12,14 +12,16 @@ import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.client.ControlTower;
 import com.o3dr.android.client.Drone;
 import com.o3dr.android.client.apis.gcs.FollowApi;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.TowerListener;
+import com.o3dr.android.dp.wear.activities.InstallAndroidWearApp;
+import com.o3dr.android.dp.wear.activities.ResolveGooglePlayServicesIssue;
 import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
-import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -31,13 +33,14 @@ import com.o3dr.services.android.lib.gcs.event.GCSEvent;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager;
 
 import java.util.LinkedList;
 
 /**
  * Created by fhuya on 12/27/14.
  */
-public class DroneService extends Service implements TowerListener, DroneListener {
+public class DroneService extends Service implements TowerListener, DroneListener, GoogleApiClientManager.ManagerListener {
 
     private static final String TAG = DroneService.class.getSimpleName();
 
@@ -45,13 +48,16 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     static final String EXTRA_ACTION_DATA = "extra_action_data";
     public static final String EXTRA_CONNECTION_PARAMETER = "extra_connection_parameter";
+    public static final String EXTRA_ERROR_CODE = "extra_error_code";
+
+    private final static Api<? extends Api.ApiOptions.NotRequiredOptions>[] apisList = new Api[]{Wearable.API};
 
     private final static IntentFilter intentFilter = new IntentFilter(WearUtils.ACTION_PREFERENCES_UPDATED);
 
     private final BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            switch(intent.getAction()){
+            switch (intent.getAction()) {
                 case WearUtils.ACTION_PREFERENCES_UPDATED:
                     updateAppPreferences();
                     break;
@@ -76,6 +82,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     private final LinkedList<Runnable> droneActionsQueue = new LinkedList<>();
 
+    private LocalBroadcastManager lbm;
     private AppPreferences appPrefs;
     private ControlTower controlTower;
     private Drone drone;
@@ -87,9 +94,12 @@ public class DroneService extends Service implements TowerListener, DroneListene
         super.onCreate();
 
         final Context context = getApplicationContext();
+        lbm = LocalBroadcastManager.getInstance(context);
         appPrefs = new AppPreferences(context);
-        apiClientMgr = new GoogleApiClientManager(context, handler, Wearable.API);
+        apiClientMgr = new GoogleApiClientManager(context, handler, apisList);
+        apiClientMgr.setManagerListener(this);
         apiClientMgr.start();
+
         updateAppPreferences();
 
         controlTower = new ControlTower(context);
@@ -105,7 +115,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
         super.onDestroy();
         LocalBroadcastManager.getInstance(getApplicationContext()).unregisterReceiver(broadcastReceiver);
 
-        apiClientMgr.stop();
+        apiClientMgr.stopSafely();
 
         //Clean out the service manager, and drone instances.
         Log.d(TAG, "Disconnecting from the control tower.");
@@ -161,6 +171,10 @@ public class DroneService extends Service implements TowerListener, DroneListene
                         }
                         break;
 
+                    case WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN:
+                        lbm.sendBroadcast(new Intent(WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN));
+                        break;
+
                     case WearUtils.ACTION_CONNECT:
                         final ConnectionParameter connParams = intent.getParcelableExtra(EXTRA_CONNECTION_PARAMETER);
                         if (connParams != null)
@@ -205,7 +219,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
                         executeDroneAction(new Runnable() {
                             @Override
                             public void run() {
-                                drone.doGuidedTakeoff(5);
+                                drone.doGuidedTakeoff(10);
                             }
                         });
                         break;
@@ -297,7 +311,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     private byte[] getDroneAttribute(String attributeType) {
         Parcelable attribute = drone.getAttribute(attributeType);
-        if(attribute instanceof FollowState){
+        if (attribute instanceof FollowState) {
             attribute = new WearFollowState((FollowState) attribute);
         }
 
@@ -308,7 +322,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
         if (drone.isStarted()) {
             Log.d(TAG, "Running drone action.");
             action.run();
-        }else {
+        } else {
             Log.d(TAG, "Queuing drone action.");
             droneActionsQueue.offer(action);
         }
@@ -419,13 +433,13 @@ public class DroneService extends Service implements TowerListener, DroneListene
         }
     }
 
-    private void updateAppPreferences(){
+    private void updateAppPreferences() {
         //Updating hdop preference
         byte[] hdopEnabled = {(byte) (appPrefs.isGpsHdopEnabled() ? 1 : 0)};
         WearUtils.asyncPutDataItem(apiClientMgr, WearUtils.PREF_IS_HDOP_ENABLED, hdopEnabled);
 
         //Updating permanent notification preference
-        byte[] isNotificationPermanent = {(byte)(appPrefs.isNotificationPermanent()? 1 : 0)};
+        byte[] isNotificationPermanent = {(byte) (appPrefs.isNotificationPermanent() ? 1 : 0)};
         WearUtils.asyncPutDataItem(apiClientMgr, WearUtils.PREF_NOTIFICATION_PERMANENT, isNotificationPermanent);
 
         //Updating screen stays on preference
@@ -440,5 +454,33 @@ public class DroneService extends Service implements TowerListener, DroneListene
     @Override
     public void onDroneServiceInterrupted(String s) {
         controlTower.unregisterDrone(drone);
+    }
+
+    @Override
+    public void onGoogleApiConnectionError(com.google.android.gms.common.ConnectionResult connectionResult) {
+        if (connectionResult.getErrorCode() == com.google.android.gms.common.ConnectionResult.API_UNAVAILABLE) {
+            //The android wear app is not installed.
+            startActivity(new Intent(getApplicationContext(), InstallAndroidWearApp.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            stopSelf();
+        }
+    }
+
+    @Override
+    public void onUnavailableGooglePlayServices(int i) {
+        startActivity(new Intent(getApplicationContext(), ResolveGooglePlayServicesIssue.class)
+                .putExtra(EXTRA_ERROR_CODE, i)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        stopSelf();
+    }
+
+    @Override
+    public void onManagerStarted() {
+
+    }
+
+    @Override
+    public void onManagerStopped() {
+
     }
 }

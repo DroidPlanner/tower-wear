@@ -30,6 +30,7 @@ public class WearListenerService extends WearRelayService {
             case WearUtils.ACTION_TAKE_OFF:
             case WearUtils.ACTION_START_FOLLOW_ME:
             case WearUtils.ACTION_STOP_FOLLOW_ME:
+            case WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN:
                 startService(new Intent(getApplicationContext(), DroneService.class).setAction(actionPath));
                 break;
 

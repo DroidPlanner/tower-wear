@@ -10,8 +10,8 @@ buildscript {
 }
 
 ext {
-    VERSION_CODE = 4
-    VERSION_NAME = "2.2"
+    VERSION_CODE = 5
+    VERSION_NAME = "2.2.1"
 }
 
 def getMavenUsername(){

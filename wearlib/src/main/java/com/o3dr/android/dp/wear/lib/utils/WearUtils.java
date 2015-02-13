@@ -13,6 +13,8 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.GoogleApiClientTask;
 
 /**
  * Created by fhuya on 12/27/14.
@@ -36,6 +38,8 @@ public class WearUtils {
 
     private static final String PREFERENCE_PREFIX = ROOT_PATH + "/app_prefs";
 
+    private static final String STATUS_PREFIX = ROOT_PATH + "/status";
+
     /* List of supported actions */
 
     /**
@@ -50,6 +54,7 @@ public class WearUtils {
 
     public static final String ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION = ACTION_PREFIX +
             "/show_context_stream_notification";
+    public static final String ACTION_STREAM_NOTIFICATION_SHOWN = ACTION_PREFIX + "/stream_notification_shown";
 
     public static final String ACTION_ARM = ACTION_PREFIX + "/arm";
     public static final String ACTION_TAKE_OFF = ACTION_PREFIX + "/take_off";
@@ -80,7 +85,7 @@ public class WearUtils {
      */
     public static boolean asyncSendMessage(GoogleApiClientManager apiClientMgr,
                                            final String msgPath, final byte[] msgData) {
-        return apiClientMgr.addTaskToBackground(apiClientMgr.new GoogleApiClientTask() {
+        return apiClientMgr.addTaskToBackground(new GoogleApiClientTask() {
 
             @Override
             public void doRun() {
@@ -113,9 +118,9 @@ public class WearUtils {
      * @param dataMapBundle non-null data bundle
      * @return true if the task was successfully queued.
      */
-    public static boolean asyncPutDataItem(GoogleApiClientManager apiClientMgr,
-                                           final String path, final Bundle dataMapBundle) {
-        return apiClientMgr.addTaskToBackground(apiClientMgr.new GoogleApiClientTask() {
+    public static boolean asyncPutDataItem(GoogleApiClientManager apiClientMgr, final String path,
+                                           final Bundle dataMapBundle) {
+        return apiClientMgr.addTaskToBackground(new GoogleApiClientTask() {
 
             @Override
             public void doRun() {
@@ -142,9 +147,8 @@ public class WearUtils {
      * @param data non-null data payload
      * @return true if the task was successfully queued.
      */
-    public static boolean asyncPutDataItem(GoogleApiClientManager apiClientMgr,
-                                           final String path, final byte[] data) {
-        return apiClientMgr.addTaskToBackground(apiClientMgr.new GoogleApiClientTask() {
+    public static boolean asyncPutDataItem(GoogleApiClientManager apiClientMgr, final String path, final byte[] data) {
+        return apiClientMgr.addTaskToBackground(new GoogleApiClientTask() {
 
             @Override
             public void doRun() {

@@ -21,6 +21,6 @@ android {
 dependencies {
     compile files('libs/sius-0.3.2-SNAPSHOT.jar')
 
-    compile 'com.o3dr:3dr-services-lib:2.2.15'
+    compile 'com.o3dr:3dr-services-lib:2.2.16'
     compile 'com.google.android.gms:play-services-wearable:6.5.87'
 }

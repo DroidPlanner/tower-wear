@@ -18,4 +18,7 @@
     <string name="pref_permanent_notification_summary">Enable to make status bar notification permanent when connected.</string>
     <string name="pref_ui_gps_hdop_summary">Display HDOP instead of FIX in satellite info bar item</string>
     <string name="pref_ui_gps_hdop_title">Display Satellite HDOP</string>
+    <string name="install_android_wear_title">Android Wear Required!</string>
+    <string name="install_android_wear_message">The Android Wear app and an Android Wear smartwatch is required to use this app.</string>
+    <string name="install_android_wear_install_button">Install</string>
 </resources>

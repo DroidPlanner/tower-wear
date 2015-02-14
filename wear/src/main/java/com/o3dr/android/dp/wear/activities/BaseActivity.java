@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.google.android.gms.common.api.Api;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
@@ -17,8 +18,9 @@ import com.google.android.gms.wearable.DataItemBuffer;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
-import com.o3dr.android.dp.wear.lib.utils.GoogleApiClientManager;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.GoogleApiClientTask;
 
 /**
  * Created by fhuya on 1/2/15.
@@ -26,6 +28,8 @@ import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 abstract class BaseActivity extends Activity implements DataApi.DataListener {
 
     private final static String TAG = BaseActivity.class.getSimpleName();
+
+    private final static Api<? extends Api.ApiOptions.NotRequiredOptions>[] apisList = new Api[]{Wearable.API};
 
     private final Handler handler = new Handler();
 
@@ -38,12 +42,12 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
         super.onCreate(savedInstanceState);
 
         final Context context = getApplicationContext();
-        apiClientMgr = new GoogleApiClientManager(context, handler, Wearable.API);
+        apiClientMgr = new GoogleApiClientManager(context, handler, apisList);
         appPrefs = new AppPreferences(context);
         broadcastManager = LocalBroadcastManager.getInstance(context);
 
         apiClientMgr.start();
-        apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
+        apiClientMgr.addTask(new GoogleApiClientTask() {
             @Override
             protected void doRun() {
                 Wearable.DataApi.addListener(getGoogleApiClient(), BaseActivity.this);
@@ -54,13 +58,13 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
+        apiClientMgr.addTask(new GoogleApiClientTask() {
             @Override
             protected void doRun() {
                 Wearable.DataApi.removeListener(getGoogleApiClient(), BaseActivity.this);
-                apiClientMgr.stop();
             }
         });
+        apiClientMgr.stopSafely();
     }
 
     @Override
@@ -78,7 +82,7 @@ abstract class BaseActivity extends Activity implements DataApi.DataListener {
 
     protected void reloadVehicleData(String dataType){
         final String dataPath = WearUtils.VEHICLE_DATA_PREFIX + dataType;
-        apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
+        apiClientMgr.addTask(new GoogleApiClientTask() {
             @Override
             protected void doRun() {
                 final Uri dataItemUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).path(dataPath)

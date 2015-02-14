@@ -28,7 +28,6 @@ import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
 import com.o3dr.android.dp.wear.lib.utils.AppPreferences;
-import com.o3dr.android.dp.wear.lib.utils.WearFollowState;
 import com.o3dr.android.dp.wear.lib.utils.WearUtils;
 import com.o3dr.android.dp.wear.widgets.adapters.FollowMeRadiusAdapter;
 import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
@@ -38,6 +37,7 @@ import com.o3dr.services.android.lib.drone.property.Type;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
+import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.GoogleApiClientTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -251,6 +251,9 @@ public class WearReceiverService extends WearRelayService {
     protected void onActionRequested(String actionPath, byte[] actionData) {
         switch (actionPath) {
             case WearUtils.ACTION_SHOW_CONTEXT_STREAM_NOTIFICATION:
+                //Send reply to let the mobile device know that you're loaded and good to go.
+                sendMessage(WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN, null);
+
                 updateContextStreamNotification();
                 break;
         }
@@ -285,7 +288,7 @@ public class WearReceiverService extends WearRelayService {
 
     private void updateContextStreamNotification() {
         final String dataPath = WearUtils.VEHICLE_DATA_PREFIX + AttributeType.STATE;
-        apiClientMgr.addTask(apiClientMgr.new GoogleApiClientTask() {
+        apiClientMgr.addTask(new GoogleApiClientTask() {
             @Override
             protected void doRun() {
                 final Uri dataItemUri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).path(dataPath).build();
@@ -389,8 +392,8 @@ public class WearReceiverService extends WearRelayService {
         Notification contextStream = new NotificationCompat.Builder(context)
                 .setContentTitle(getText(R.string.app_name))
                 .setContentText("")
-                .setOnlyAlertOnce(!shouldNotifyUser(vehicleState))
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setOnlyAlertOnce(false)
+                .setDefaults(shouldNotifyUser(vehicleState) ? NotificationCompat.DEFAULT_ALL : 0)
                 .setPriority(notificationPriority)
                 .setOngoing(onGoing)
                 .extend(extender)

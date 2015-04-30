@@ -45,4 +45,8 @@ public class FollowTypesAdapter extends WearableListView.Adapter {
     public int getItemCount() {
         return followTypes.size();
     }
+
+    public int getItemPosition(FollowType type){
+        return followTypes.indexOf(type);
+    }
 }

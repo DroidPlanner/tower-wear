@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -13,7 +14,7 @@ import com.o3dr.android.dp.wear.services.DroneService;
 /**
  * Used to prompt the user to fix the google play services issue.
  */
-public class ResolveGooglePlayServicesIssue extends ActionBarActivity {
+public class ResolveGooglePlayServicesIssue extends AppCompatActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState){

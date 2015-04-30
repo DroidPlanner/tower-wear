@@ -1,12 +1,12 @@
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode VERSION_CODE
         versionName VERSION_NAME
     }
@@ -22,5 +22,5 @@ dependencies {
     compile files('libs/sius-0.3.2-SNAPSHOT.jar')
 
     compile 'com.o3dr.android:dronekit-android:2.3.11'
-    compile 'com.google.android.gms:play-services-wearable:6.5.87'
+    compile 'com.google.android.gms:play-services-wearable:7.0.0'
 }

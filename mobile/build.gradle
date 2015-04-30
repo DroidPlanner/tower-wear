@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 21
+    compileSdkVersion 22
     buildToolsVersion "21.1.2"
 
     compileOptions {
@@ -12,7 +12,7 @@ android {
     defaultConfig {
         applicationId "com.o3dr.android.dp.wear"
         minSdkVersion 18
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode VERSION_CODE
         versionName VERSION_NAME
     }
@@ -49,8 +49,8 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v4:21.0.3'
-    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.android.support:support-v4:22.1.0'
+    compile 'com.android.support:appcompat-v7:22.1.0'
     compile 'com.android.support:cardview-v7:21.0.0'
 
     compile project(':wearlib')

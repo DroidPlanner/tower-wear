@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.o3dr.android.dp.wear.R;
@@ -16,7 +17,7 @@ import com.o3dr.android.dp.wear.services.DroneService;
 /**
  * Created by fhuya on 12/27/14.
  */
-public class PreferencesActivity extends ActionBarActivity {
+public class PreferencesActivity extends AppCompatActivity {
 
     private static final IntentFilter intentFilter = new IntentFilter(WearUtils.ACTION_STREAM_NOTIFICATION_SHOWN);
 

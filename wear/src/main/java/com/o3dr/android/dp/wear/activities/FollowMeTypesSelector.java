@@ -20,6 +20,7 @@ import com.o3dr.services.android.lib.gcs.follow.FollowType;
 public class FollowMeTypesSelector extends Activity implements WearableListView.ClickListener {
 
     private WearableListView followTypesView;
+    private final FollowTypesAdapter adapter = new FollowTypesAdapter();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,7 +28,7 @@ public class FollowMeTypesSelector extends Activity implements WearableListView.
         setContentView(R.layout.wear_list_view);
 
         followTypesView = (WearableListView) findViewById(R.id.wear_list);
-        followTypesView.setAdapter(new FollowTypesAdapter());
+        followTypesView.setAdapter(adapter);
         followTypesView.setClickListener(this);
 
         handleIntent(getIntent());
@@ -47,7 +48,7 @@ public class FollowMeTypesSelector extends Activity implements WearableListView.
         if (followState != null) {
             RecyclerView.LayoutManager layoutMgr = followTypesView.getLayoutManager();
             if (layoutMgr != null) {
-                layoutMgr.scrollToPosition(followState.getMode().ordinal());
+                layoutMgr.scrollToPosition(adapter.getItemPosition(followState.getMode()));
             }
         }
     }

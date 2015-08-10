@@ -11,12 +11,17 @@ import android.os.IBinder;
 import android.os.Parcelable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.MAVLink.common.msg_command_long;
+import com.MAVLink.common.msg_set_position_target_local_ned;
+import com.MAVLink.enums.MAV_CMD;
 import com.google.android.gms.common.api.Api;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.client.ControlTower;
 import com.o3dr.android.client.Drone;
-import com.o3dr.android.client.apis.gcs.FollowApi;
+import com.o3dr.android.client.apis.ExperimentalApi;
+import com.o3dr.android.client.apis.FollowApi;
 import com.o3dr.android.client.interfaces.DroneListener;
 import com.o3dr.android.client.interfaces.TowerListener;
 import com.o3dr.android.dp.wear.activities.InstallAndroidWearApp;
@@ -28,14 +33,18 @@ import com.o3dr.services.android.lib.drone.attribute.AttributeEvent;
 import com.o3dr.services.android.lib.drone.attribute.AttributeType;
 import com.o3dr.services.android.lib.drone.connection.ConnectionParameter;
 import com.o3dr.services.android.lib.drone.connection.ConnectionResult;
+import com.o3dr.services.android.lib.drone.property.Attitude;
 import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.event.GCSEvent;
 import com.o3dr.services.android.lib.gcs.follow.FollowState;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
+import com.o3dr.services.android.lib.mavlink.MavlinkMessageWrapper;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager;
 
 import java.util.LinkedList;
+
+import timber.log.Timber;
 
 /**
  * Created by fhuya on 12/27/14.
@@ -51,6 +60,10 @@ public class DroneService extends Service implements TowerListener, DroneListene
     public static final String EXTRA_ERROR_CODE = "extra_error_code";
 
     private final static Api<? extends Api.ApiOptions.NotRequiredOptions>[] apisList = new Api[]{Wearable.API};
+
+    private static final int ignoreVel = ((1<<3) | (1<<4) | (1 << 5));
+    private static final int ignoreAcc = ((1<<6) | (1<<7) | (1 << 8));
+    private static final int ignorePos = ((1<<0) | (1<<1) | (1<<2));
 
     private final static IntentFilter intentFilter = new IntentFilter(WearUtils.ACTION_PREFERENCES_UPDATED);
 
@@ -105,7 +118,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
         controlTower = new ControlTower(context);
         controlTower.connect(this);
 
-        this.drone = new Drone();
+        this.drone = new Drone(context);
 
         LocalBroadcastManager.getInstance(context).registerReceiver(broadcastReceiver, intentFilter);
     }
@@ -119,7 +132,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
         //Clean out the service manager, and drone instances.
         Log.d(TAG, "Disconnecting from the control tower.");
-
+        Toast.makeText(getApplicationContext(), "Disconnecting from vehicle", Toast.LENGTH_LONG).show();
         controlTower.unregisterDrone(drone);
         controlTower.disconnect();
 
@@ -293,11 +306,62 @@ public class DroneService extends Service implements TowerListener, DroneListene
                                 public void run() {
                                     Bundle params = new Bundle();
                                     params.putDouble(FollowType.EXTRA_FOLLOW_RADIUS, radius);
-                                    FollowApi.updateFollowParams(drone, params);
+                                    FollowApi.getApi(drone).updateFollowParams(params);
                                 }
                             });
                         }
                         break;
+                    case WearUtils.ACTION_DRIFT_CONTROL:{
+                        final float[] stickValue = intent.getFloatArrayExtra(EXTRA_ACTION_DATA);
+                        final float yaw = stickValue[0];
+                        float y = stickValue[1];
+                        float x = 0f;
+                        Attitude attitude = drone.getAttribute(AttributeType.ATTITUDE);
+                        float heading = (float) attitude.getYaw();
+//                        heading /= Math.PI;
+//                        heading *= 180f;
+                        Log.d("yaw control", "yaw: " + yaw + ", heading:" + heading);
+                        if (Math.abs(yaw) > 0.05) {
+                            msg_command_long msgYaw = new msg_command_long();
+                            msgYaw.command = MAV_CMD.MAV_CMD_CONDITION_YAW;
+                            msgYaw.param1 = (360 + (heading + yaw * 30f)) % 360;
+                            msgYaw.param2 = Math.abs(yaw) * 30f;
+                            msgYaw.param3 = Math.signum(yaw);
+                            msgYaw.param4 = 0;
+                            ExperimentalApi.getApi(drone).sendMavlinkMessage(new MavlinkMessageWrapper(msgYaw));
+                        }
+                        if (y != 0) {
+                            double theta = 0;
+                            if (theta < 0) {
+                                theta += Math.PI;
+                            }
+                            if (y < 0) {
+                                theta += Math.PI;
+                            }
+//                            theta += Math.PI / 2;
+                            double magnitude = y;
+                            heading = (float)Math.toRadians(heading);
+                            x = (float) (Math.cos(heading + theta) * magnitude);
+                            y = (float) (Math.sin(heading + theta) * magnitude);
+                        }
+                        Log.d("drift control", x + ", " + y);
+                        msg_set_position_target_local_ned msg = new msg_set_position_target_local_ned();
+                        msg.vy = y* 5f;
+                        msg.vx = x * 5f;
+                        msg.type_mask = ignoreAcc | ignorePos;
+                        ExperimentalApi.getApi(drone).sendMavlinkMessage(new MavlinkMessageWrapper(msg));
+                        break;
+                }
+                    case WearUtils.ACTION_DRIFT_STOP: {
+                        msg_set_position_target_local_ned msg = new msg_set_position_target_local_ned();
+                        msg.vy = 0;
+                        msg.vx = 0;
+                        msg.vz = 0;
+                        msg.type_mask = ignoreAcc | ignorePos;
+                        ExperimentalApi.getApi(drone).sendMavlinkMessage(new MavlinkMessageWrapper(msg));
+                        break;
+                    }
+
                 }
             }
         }
@@ -340,6 +404,7 @@ public class DroneService extends Service implements TowerListener, DroneListene
             controlTower.registerDrone(drone, handler);
             updateAllVehicleAttributes();
             Log.d(TAG, "Drone started.");
+            Toast.makeText(getApplicationContext(), "Drone started: " + drone.isConnected(), Toast.LENGTH_LONG).show();
 
             if (!droneActionsQueue.isEmpty()) {
                 for (Runnable action : droneActionsQueue) {
@@ -351,8 +416,8 @@ public class DroneService extends Service implements TowerListener, DroneListene
 
     @Override
     public void onTowerDisconnected() {
-        controlTower.unregisterDrone(drone);
-        controlTower.disconnect();
+//        controlTower.unregisterDrone(drone);
+//        controlTower.disconnect();
         stopSelf();
     }
 

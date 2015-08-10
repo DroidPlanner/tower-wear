@@ -13,6 +13,7 @@ import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
+import com.o3dr.android.dp.wear.lib.BuildConfig;
 import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager;
 import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.GoogleApiClientTask;
 
@@ -21,7 +22,7 @@ import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.Googl
  */
 public class WearUtils {
 
-    public static final String TOWER_APP_ID = "org.droidplanner.android";
+    public static final String TOWER_APP_ID = "org.droidplanner.android.debug";
 
     private static final String TAG = WearUtils.class.getSimpleName();
 
@@ -68,6 +69,8 @@ public class WearUtils {
     public static final String ACTION_STOP_FOLLOW_ME = ACTION_PREFIX + "/stop_follow_me";
     public static final String ACTION_SET_GUIDED_ALTITUDE = ACTION_PREFIX + "/set_guided_altitude";
     public static final String ACTION_SET_FOLLOW_ME_RADIUS = ACTION_PREFIX + "/set_follow_me_radius";
+    public static final String ACTION_DRIFT_CONTROL = ACTION_PREFIX + "/drift_control";
+    public static final String ACTION_DRIFT_STOP = ACTION_PREFIX + "/drift_stop";
 
     /* List of app preferences */
     public static final String PREF_IS_HDOP_ENABLED = PREFERENCE_PREFIX + "/hdop_enabled";

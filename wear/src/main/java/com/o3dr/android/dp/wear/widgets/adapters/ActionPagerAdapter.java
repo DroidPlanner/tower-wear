@@ -5,7 +5,9 @@ import android.app.FragmentManager;
 import android.os.Bundle;
 import android.support.wearable.view.FragmentGridPagerAdapter;
 
+import com.o3dr.android.dp.wear.activities.DriftControlActivity;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
+import com.o3dr.android.dp.wear.fragment.DriftControlActionFragment;
 import com.o3dr.android.dp.wear.fragment.FollowMeRadiusFragment;
 import com.o3dr.android.dp.wear.fragment.FollowMeToggleActionFragment;
 import com.o3dr.android.dp.wear.fragment.FollowMeTypesFragment;

@@ -20,6 +20,7 @@
         <activity android:name=".activities.FlightModesSelectionActivity" />
         <activity android:name=".activities.FollowMeRadiusSelector" />
         <activity android:name=".activities.FollowMeTypesSelector" />
+        <activity android:name=".activities.DriftControlActivity" android:theme="@style/DriftControlTheme"/>
 
         <activity
             android:name=".activities.WearUIActivity"

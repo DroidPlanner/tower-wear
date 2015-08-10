@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="DPWearTheme" parent="@android:style/Theme.DeviceDefault.Light" />
+    <style name="DriftControlTheme" parent="DPWearTheme">
+        <item name="android:windowSwipeToDismiss">false</item>
+    </style>
 </resources>

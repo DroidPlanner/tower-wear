@@ -24,6 +24,7 @@ import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 import com.o3dr.android.dp.wear.R;
 import com.o3dr.android.dp.wear.activities.ContextStreamActivity;
+import com.o3dr.android.dp.wear.activities.DriftControlActivity;
 import com.o3dr.android.dp.wear.activities.FlightModesSelectionActivity;
 import com.o3dr.android.dp.wear.activities.WearUIActivity;
 import com.o3dr.android.dp.wear.lib.services.WearRelayService;
@@ -39,6 +40,7 @@ import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 import com.o3dr.services.android.lib.util.googleApi.GoogleApiClientManager.GoogleApiClientTask;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -149,6 +151,14 @@ public class WearReceiverService extends WearRelayService {
                         final int radius = intent.getIntExtra(EXTRA_ACTION_DATA, FollowMeRadiusAdapter.MIN_RADIUS);
                         byte[] radiusData = {(byte) radius};
                         sendMessage(action, radiusData);
+                        break;
+                    case WearUtils.ACTION_DRIFT_CONTROL:
+                        final float[] joystickValue = intent.getFloatArrayExtra(EXTRA_ACTION_DATA);
+                        byte[] joystickValueData = ByteBuffer.allocate(Float.SIZE/4).putFloat(joystickValue[0]).putFloat(joystickValue[1]).array();
+                        sendMessage(action, joystickValueData);
+                        break;
+                    case WearUtils.ACTION_DRIFT_STOP:
+                        sendMessage(action, null);
                         break;
                 }
             }
@@ -342,6 +352,12 @@ public class WearReceiverService extends WearRelayService {
             if (isCopter) {
                 if (vehicleState.isFlying()) {
                     actionsList.add(getFollowMeActions(context, vehicleState));
+                    if(vehicleMode != null && vehicleMode.equals(VehicleMode.COPTER_GUIDED)){
+                        final Intent controlIntent = new Intent(context, DriftControlActivity.class);
+                        final PendingIntent controlPI = PendingIntent.getActivity(context, 0, controlIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                        final NotificationCompat.Action controlAction = new NotificationCompat.Action(R.drawable.ic_control_white_48dp, "Control", controlPI);
+                        actionsList.add(controlAction);
+                    }
                 } else if (vehicleState.isArmed()) {
                     final Intent takeOffIntent = new Intent(context, WearReceiverService.class).setAction(WearUtils
                             .ACTION_TAKE_OFF);

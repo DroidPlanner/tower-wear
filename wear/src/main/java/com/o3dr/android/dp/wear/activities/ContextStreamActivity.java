@@ -241,7 +241,7 @@ public class ContextStreamActivity extends BaseActivity {
         if (!droneGps.isValid() || !droneHome.isValid())
             return;
 
-        double distanceToHome = MathUtils.getDistance(droneHome.getCoordinate(), droneGps.getPosition());
+        double distanceToHome = MathUtils.getDistance2D(droneHome.getCoordinate(), droneGps.getPosition());
         LengthUnit convertedDistance = UnitManager.getUnitSystem(appPrefs.getUnitSystemType())
                 .getLengthUnitProvider().boxBaseValueToTarget(distanceToHome);
         homeStatus.setText(convertedDistance.toString());

@@ -12,6 +12,8 @@ import com.o3dr.services.android.lib.drone.property.VehicleMode;
 import com.o3dr.services.android.lib.gcs.follow.FollowType;
 import com.o3dr.services.android.lib.util.ParcelableUtils;
 
+import java.nio.ByteBuffer;
+
 /**
  * Created by fhuya on 12/30/14.
  */
@@ -66,6 +68,17 @@ public class WearListenerService extends WearRelayService {
             case WearUtils.ACTION_OPEN_PHONE_APP:
                 startActivity(new Intent(getApplicationContext(), PreferencesActivity.class)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                break;
+            case WearUtils.ACTION_DRIFT_CONTROL:
+                float[] joystickValues = new float[2];
+                ByteBuffer buffer = ByteBuffer.wrap(data);
+                joystickValues[0] = buffer.getFloat();
+                joystickValues[1] = buffer.getFloat();
+                startService(new Intent(getApplicationContext(), DroneService.class).setAction(actionPath)
+                        .putExtra(DroneService.EXTRA_ACTION_DATA, joystickValues));
+                break;
+            case WearUtils.ACTION_DRIFT_STOP:
+                startService(new Intent(getApplicationContext(), DroneService.class).setAction(actionPath));
                 break;
         }
     }
